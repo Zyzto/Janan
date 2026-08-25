@@ -1,5 +1,7 @@
 # Google play policy
 
+Leftover notes from the original Play Console listing. This [fork](../FORK.md) is not published to Play. I use AI here.
+
 This document provides an overview of Information provided to google in the Google Play console
 
 ## Health apps declaration

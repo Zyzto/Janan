@@ -1,8 +1,8 @@
 # Blood Pressure Monitor
 
-This is my fork of [derdilla/blood-pressure-monitor-fl](https://github.com/derdilla/blood-pressure-monitor-fl).
+This is my fork of [derdilla/blood-pressure-monitor-fl](https://github.com/derdilla/blood-pressure-monitor-fl). Same story in [FORK.md](FORK.md).
 
-I use it for BLE work that is not going upstream. The original project does not accept LLM-written contributions, so I am not opening PRs there.
+I write a lot of this with AI coding agents. The original project does not accept that, so I am not opening PRs there.
 
 If you want the official app from Play Store, F-Droid, or GitHub Releases, get it from the [original repo](https://github.com/derdilla/blood-pressure-monitor-fl). This fork is source only.
 

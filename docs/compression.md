@@ -1,5 +1,7 @@
 *developer documentation - users can safely ignore this*
 
+[Fork](../FORK.md). I use AI here. Debug symbols mentioned below are from upstream releases.
+
 ### Used compressions
 
 Blood pressure monitor uses dart code obfuscation to effectively reduce the app size by 2-3 MB from v1.5.6 onwards.

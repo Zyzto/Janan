@@ -1,5 +1,7 @@
 *developer documentation - users can safely ignore this*
 
+[Fork](../FORK.md). I use AI here.
+
 User data is stored in a designated database that is accessed through a minimal CRUD API. This aims to reduce the risk of data loss. The general idea is described by this diagram:
 
 ![Diagramm showing DB tables and the layered health data store API](resources/data-package.svg)

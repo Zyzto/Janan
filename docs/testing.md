@@ -1,5 +1,7 @@
 # Testing
 
+[Fork](../FORK.md). I use AI here.
+
 Testing means catching bugs early and automated testing has already prevented 
 multiple bugs from getting reintroduced. Therefor the goal is to have the 
 entire codebase covered by extensive tests.

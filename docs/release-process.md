@@ -1,5 +1,7 @@
 *developer documentation - users can safely ignore this*
 
+Upstream release checklist. This [fork](../FORK.md) is not the official Play or GitHub Release. I use AI here.
+
 ## App release checklist
 
 - [ ] no remaining breaking issues

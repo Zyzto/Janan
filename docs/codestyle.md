@@ -1,5 +1,7 @@
 *developer documentation - users can safely ignore this*
 
+[Fork](../FORK.md). I use AI here.
+
 # Code-style guideline
 
 The goal of this style guideline is to make dart code maintainable and to reduce time spent on structuring code. If there is no way to write a specific piece of code that follows this style, feel free to propose changes and use more efficient style.
