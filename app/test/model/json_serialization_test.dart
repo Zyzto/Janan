@@ -95,6 +95,7 @@ void main() {
         allowMissingValues: false,
         drawRegressionLines: false,
         startWithAddMeasurementPage: false,
+        syncBluetoothOnLaunch: true,
         compactList: false,
         horizontalGraphLines: [HorizontalGraphLine(Colors.blue, 1230)],
         bottomAppBars: true,
@@ -130,6 +131,7 @@ void main() {
       expect(initial.allowMissingValues, fromJson.allowMissingValues);
       expect(initial.drawRegressionLines, fromJson.drawRegressionLines);
       expect(initial.startWithAddMeasurementPage, fromJson.startWithAddMeasurementPage);
+      expect(initial.syncBluetoothOnLaunch, fromJson.syncBluetoothOnLaunch);
       expect(initial.compactList, fromJson.compactList);
       expect(initial.horizontalGraphLines.length, fromJson.horizontalGraphLines.length);
       expect(initial.horizontalGraphLines.first.color.toARGB32(), fromJson.horizontalGraphLines.first.color.toARGB32());

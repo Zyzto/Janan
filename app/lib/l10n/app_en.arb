@@ -238,6 +238,65 @@
   "startWithAddMeasurementPageDescription": "Upon app launch, immediately show the measurement input screen.",
   "autostartBluetoothInput": "Auto-start Bluetooth import",
   "autostartBluetoothInputDescription": "When Bluetooth input is enabled and Bluetooth is on, automatically start importing on the measurement input screen.",
+  "syncBluetoothOnLaunch": "Sync meter on launch",
+  "syncBluetoothOnLaunchDescription": "When the app opens, connect to your saved meter and import readings that are not already in your diary.",
+  "syncingMeter": "Syncing meter\u2026",
+  "syncingMeterNamed": "Syncing {name}\u2026",
+  "@syncingMeterNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "importedNewMeasurements": "Imported {count} new measurements",
+  "@importedNewMeasurements": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noNewMeasurements": "No new measurements",
+  "bluetoothSyncFailed": "Couldn''t sync the meter",
+  "bluetoothOffSyncSkipped": "Turn on Bluetooth to sync your meter",
+  "foundMeterNamed": "Found {name}",
+  "@foundMeterNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "readingStoredMeasurements": "Reading stored measurements\u2026",
+  "savingNewMeasurements": "Saving new measurements\u2026",
+  "skippedAlreadySaved": "{count} already saved were skipped",
+  "@skippedAlreadySaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncStepLook": "Look",
+  "syncStepConnect": "Connect",
+  "syncStepRead": "Read",
+  "syncStepSave": "Save",
+  "meterNotFound": "Meter not found",
+  "pauseMeterSync": "Pause",
+  "resumeMeterSync": "Resume",
+  "meterSyncPaused": "Meter sync paused",
+  "meterSyncPausedHint": "Tap resume to look for your meter again.",
+  "checkingForOneMinute": "Will keep looking for 1 minute.",
+  "scanningForExtraDevices": "Scanning for extra devices",
+  "timeLeft": "{time} left",
+  "@timeLeft": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "bluetoothImportMode": "Auto-import",
   "bluetoothImportModeDescription": "Automatically import measurements returned by the device instead of reviewing them first. When more than one is returned, choose which to import.",
   "bluetoothImportModeDisabled": "Disabled",

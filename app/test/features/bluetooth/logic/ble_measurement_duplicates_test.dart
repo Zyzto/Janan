@@ -56,18 +56,37 @@ void main() {
   test('drops a scale reading already saved within five minutes', () {
     final incoming = BleWeightData(kg: 102.3, time: time);
     final saved = [
-      BodyweightRecord(time: time.add(const Duration(minutes: 2)), weight: Weight.kg(102.3)),
+      BodyweightRecord(time: time.add(const Duration(minutes: 1)), weight: Weight.kg(102.3)),
     ];
     expect(newBleWeights([incoming], saved), isEmpty);
+  });
+
+  test('keeps a later weigh-in with the same kg', () {
+    final incoming = BleWeightData(kg: 102.3, time: time.add(const Duration(hours: 1)));
+    final saved = [
+      BodyweightRecord(time: time, weight: Weight.kg(102.3)),
+    ];
+    expect(newBleWeights([incoming], saved), [incoming]);
   });
 
   test('upgrades a recent weight-only save when impedance arrives', () {
     final incoming = BleWeightData(kg: 102.3, time: time, impedance: 500);
     final saved = [
-      BodyweightRecord(time: time, weight: Weight.kg(102.3)),
+      BodyweightRecord(time: time.add(const Duration(minutes: 1)), weight: Weight.kg(102.3)),
     ];
-    final upgrades = bleWeightsToUpgrade([incoming], saved);
-    expect(upgrades, hasLength(1));
-    expect(upgrades.single.$2.impedance, closeTo(500, 0.001));
+    expect(newBleWeights([incoming], saved), isEmpty);
+    expect(bleWeightsToUpgrade([incoming], saved), [(saved.first, incoming)]);
+  });
+
+  test('does not upgrade a save that already has impedance', () {
+    final incoming = BleWeightData(kg: 102.3, time: time, impedance: 510);
+    final saved = [
+      BodyweightRecord(
+        time: time,
+        weight: Weight.kg(102.3),
+        impedanceOhm: 500,
+      ),
+    ];
+    expect(bleWeightsToUpgrade([incoming], saved), isEmpty);
   });
 }

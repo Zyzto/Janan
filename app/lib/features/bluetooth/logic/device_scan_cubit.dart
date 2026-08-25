@@ -19,8 +19,8 @@ part 'device_scan_state.dart';
 ///
 /// For this to work the app must have access to the bluetooth adapter
 /// ([BluetoothCubit]).
-///
-/// A device counts as recognized, when the user connected with it at least
+/// 
+/// A device counts as recognized, when the user connected with it at least 
 /// once. Recognized devices connect automatically.
 class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
   /// Search for bluetooth devices that match the criteria or are known
@@ -52,6 +52,8 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
 
   Future<void> _startScanning() async {
     try {
+      // no timeout, the user knows best how long scanning is needed
+      // Not all devices are found using this configuration (https://pub.dev/packages/flutter_blue_plus#scanning-does-not-find-my-device).
       await _manager.discovery.start(_onScanResult);
     } catch (e) {
       _onScanError(e);
@@ -71,7 +73,9 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
   void _onScanResult(List<BluetoothDevice> devices) {
     logger.finer('_onScanResult devices: $devices');
 
-    if (state is DeviceSelected) {
+    // No need to check whether the devices really support the searched
+    // characteristic as users have to select their device anyways.
+    if(state is DeviceSelected) {
       return;
     }
 
@@ -141,7 +145,8 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
     settings.knownBleDev = list;
   }
 
-  /// Stop discovering without closing the cubit.
+  /// Stop discovering without closing the cubit, so a later [resumeScan] can
+  /// look for extra saved meters after the first GATT connect has started.
   Future<void> pauseScan() => _stopScanning();
 
   /// Start discovering again after [pauseScan].

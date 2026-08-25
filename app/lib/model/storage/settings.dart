@@ -106,6 +106,10 @@ class _SettingsSpec extends ChangeNotifier {
   /// when bluetooth input is enabled and bluetooth is on.
   final autostartBluetoothInput = Setting<bool>(initialValue: false);
 
+  /// Whether to connect to a saved meter when the app opens and import
+  /// readings that are not already in the diary.
+  final syncBluetoothOnLaunch = Setting<bool>(initialValue: true);
+
   /// Whether to automatically import the bluetooth measurement(s)
   final Setting<BluetoothMeasurementImportMode> bluetoothImportMode =
       BluetoothMeasurementImportModeSetting(

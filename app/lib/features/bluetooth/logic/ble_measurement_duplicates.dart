@@ -40,7 +40,7 @@ List<BleMeasurementData> newBleMeasurements(
 ///
 /// Two readings match when the kilogram value agrees to two decimals and the
 /// timestamps are within five minutes, so a just-taken weigh-in is not stored
-/// twice if two readers both see it.
+/// twice if launch sync and the input sheet both see it.
 List<BleWeightData> newBleWeights(
   Iterable<BleWeightData> incoming,
   Iterable<BodyweightRecord> saved, {
@@ -63,6 +63,10 @@ List<BleWeightData> newBleWeights(
 }
 
 /// Incoming scale readings that add impedance to a recent weight-only save.
+///
+/// Auto-sync can persist kilograms before the scale finishes BIA. The next
+/// pass should replace that row instead of treating the full reading as a
+/// duplicate.
 List<(BodyweightRecord, BleWeightData)> bleWeightsToUpgrade(
   Iterable<BleWeightData> incoming,
   Iterable<BodyweightRecord> saved, {

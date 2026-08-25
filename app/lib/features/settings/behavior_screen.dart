@@ -39,6 +39,15 @@ class BehaviorScreen extends StatelessWidget {
                 ? null
                 : (value) { settings.autostartBluetoothInput = value; },
           ),
+          SwitchListTile(
+            title: Text(localizations.syncBluetoothOnLaunch),
+            subtitle: Text(localizations.syncBluetoothOnLaunchDescription),
+            secondary: const Icon(Icons.sync),
+            value: settings.syncBluetoothOnLaunch,
+            onChanged: settings.bleInput == BluetoothInputMode.disabled
+                ? null
+                : (value) { settings.syncBluetoothOnLaunch = value; },
+          ),
           DropDownListTile<BluetoothMeasurementImportMode>(
             leading: const Icon(Icons.download),
             title: Text(localizations.bluetoothImportMode),

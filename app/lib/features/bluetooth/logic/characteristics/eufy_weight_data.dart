@@ -40,7 +40,7 @@ class EufyWeightData {
   ///
   /// Live frames often repeat the same kilogram value (`stable`) while
   /// `data[9] == 1` and impedance is still zero. Completing on that pair
-  /// would persist a weight-only record and skip the ohms that follow.
+  /// would persist a weight-only record and skip body composition.
   bool get isCompleteReading => hasImpedance && (isFinal || stable);
 
   /// Last frame that includes impedance, or [frames].last if none do.
@@ -54,7 +54,7 @@ class EufyWeightData {
   /// Convert to a diary record.
   BodyweightRecord asBodyweightRecord() => asBleWeight.asBodyweightRecord();
 
-  /// Protocol-neutral weight used by UI.
+  /// Protocol-neutral weight used by UI and launch sync.
   BleWeightData get asBleWeight =>
       BleWeightData(kg: kg, time: time, impedance: impedance);
 

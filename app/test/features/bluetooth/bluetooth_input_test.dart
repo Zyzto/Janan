@@ -4,8 +4,8 @@ import 'package:blood_pressure_app/features/bluetooth/bluetooth_input.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/ble_read_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/bluetooth_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/ble_measurement_data.dart';
-import 'package:blood_pressure_app/features/bluetooth/logic/device_scan_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_weight_data.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/device_scan_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/closed_bluetooth_input.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/device_connecting_placeholder.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/measurement_failure.dart';
@@ -244,7 +244,7 @@ void main() {
     expect(find.text(localizations.readingMeasurement), findsOneWidget);
   });
 
-  testWidgets('saves a scale reading when onWeight is omitted', (tester) async {
+  testWidgets('saves a Eufy scale weight', (tester) async {
     final bluetoothCubit = _MockBluetoothCubit();
     whenListen(bluetoothCubit,
         Stream<BluetoothState>.fromIterable([BluetoothStateReady()]),

@@ -1,4 +1,6 @@
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_device_registry.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/eufy_p1_scale_profile.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/eufy_p2_unsupported_profile.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/gatt_blood_pressure_profile.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/microlife_profile.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/yonker_profile.dart';
@@ -44,13 +46,33 @@ void main() {
       );
     });
 
-    test('nameless fff0 looks like Microlife', () {
+    test('nameless fff0 looks like Microlife, not a scale', () {
       expect(
         registry.resolveAdvertisement(
           name: 'Unknown',
           serviceUUIDs: [uuid('fff0')],
         )?.id,
         'microlife',
+      );
+      expect(registry.isEufyP1ScaleName('Unknown'), isFalse);
+    });
+
+    test('eufy T9147 is a P1 scale by name', () {
+      expect(
+        registry.resolveAdvertisement(
+          name: 'eufy T9147',
+          serviceUUIDs: const [],
+        )?.id,
+        'eufy-p1',
+      );
+      expect(registry.isEufyP1ScaleName('eufy T9147'), isTrue);
+      expect(registry.isLikelyWeightScaleName('eufy T9149'), isTrue);
+      expect(
+        registry.resolveAdvertisement(
+          name: 'Eufy Smart Scale',
+          serviceUUIDs: const [],
+        ),
+        isNull,
       );
     });
   });
@@ -64,6 +86,43 @@ void main() {
           characteristicUUIDs: const [],
         ),
         isNull,
+      );
+    });
+
+    test('fff4 without fff2 is Eufy P1', () {
+      expect(
+        const EufyP1ScaleProfile().matchesDiscovered(
+          serviceUUIDs: [uuid('fff0')],
+          characteristicUUIDs: [
+            uuid(EufyP1ScaleProfile.writeCharacteristicUUID),
+            uuid(EufyP1ScaleProfile.notifyCharacteristicUUID),
+          ],
+        ),
+        isTrue,
+      );
+      expect(
+        registry.resolveDiscovered(
+          serviceUUIDs: [uuid('fff0')],
+          characteristicUUIDs: [uuid('fff1'), uuid('fff4')],
+        )?.id,
+        'eufy-p1',
+      );
+    });
+
+    test('fff4 with fff2 is the unsupported P2 protocol', () {
+      expect(
+        const EufyP2UnsupportedProfile().matchesDiscovered(
+          serviceUUIDs: [uuid('fff0')],
+          characteristicUUIDs: [uuid('fff1'), uuid('fff2'), uuid('fff4')],
+        ),
+        isTrue,
+      );
+      expect(
+        registry.resolveDiscovered(
+          serviceUUIDs: [uuid('fff0')],
+          characteristicUUIDs: [uuid('fff1'), uuid('fff2'), uuid('fff4')],
+        )?.id,
+        'eufy-p2',
       );
     });
 
@@ -105,28 +164,6 @@ void main() {
           characteristicUUIDs: [uuid(YonkerProfile.characteristicUUID)],
         )?.id,
         'yonker',
-      );
-    });
-
-    test('fff4 without fff2 is Eufy P1', () {
-      expect(
-        registry.resolveDiscovered(
-          name: 'eufy T9147',
-          serviceUUIDs: [uuid('fff0')],
-          characteristicUUIDs: [uuid('fff4'), uuid('fff1')],
-        )?.id,
-        'eufy-p1',
-      );
-    });
-
-    test('fff4 plus fff2 is the unsupported P2 stub', () {
-      expect(
-        registry.resolveDiscovered(
-          name: 'eufy T9149',
-          serviceUUIDs: [uuid('fff0')],
-          characteristicUUIDs: [uuid('fff4'), uuid('fff2')],
-        )?.id,
-        'eufy-p2',
       );
     });
   });
