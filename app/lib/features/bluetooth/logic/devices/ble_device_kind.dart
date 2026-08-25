@@ -2,4 +2,7 @@
 enum BleDeviceKind {
   /// Blood-pressure measurements.
   bloodPressure,
+
+  /// Body-weight measurements.
+  weight,
 }

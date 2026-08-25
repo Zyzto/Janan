@@ -9,6 +9,7 @@ import 'package:blood_pressure_app/features/bluetooth/logic/ble_read_cubit.dart'
 import 'package:blood_pressure_app/features/bluetooth/logic/bluetooth_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/ble_measurement_data.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/device_scan_cubit.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_weight_data.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/closed_bluetooth_input.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/device_connecting_placeholder.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/device_scan_placeholder.dart';
@@ -17,6 +18,7 @@ import 'package:blood_pressure_app/features/bluetooth/ui/input_card.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/measurement_failure.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/measurement_multiple.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/measurement_success.dart';
+import 'package:blood_pressure_app/features/bluetooth/ui/weight_measurement_success.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:blood_pressure_app/logging.dart';
 import 'package:blood_pressure_app/model/bluetooth_measurement_import_mode.dart';
@@ -34,6 +36,7 @@ class BluetoothInput extends StatefulWidget {
     required this.onMeasurement,
     required this.onAllMeasurements,
     required this.manager,
+    this.onWeight,
     this.bluetoothCubit,
     this.deviceScanCubit,
     this.bleReadCubit,
@@ -47,6 +50,11 @@ class BluetoothInput extends StatefulWidget {
 
   /// Called when the user chooses to import all received measurements through bluetooth.
   final void Function(List<BloodPressureRecord> data) onAllMeasurements;
+
+  /// Called when a scale reading should be reviewed in the entry form.
+  ///
+  /// When this is null, a successful weigh-in is written to the diary instead.
+  final void Function(BodyweightRecord data)? onWeight;
 
   /// Function to customize [BluetoothCubit] creation.
   final BluetoothCubit Function()? bluetoothCubit;
@@ -87,6 +95,9 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
   /// Its presence indicates that this input is done.
   BleMeasurementData? _finishedData;
 
+  /// Weight received from a scale, when that is what the device sent.
+  BleWeightData? _finishedWeight;
+
   /// Shown when auto-import could not load the diary to filter duplicates.
   String? _importError;
 
@@ -112,6 +123,7 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
       setState(() {
         isActive = false;
         _finishedData = null;
+        _finishedWeight = null;
         _importError = null;
       });
     }
@@ -129,6 +141,7 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
     if (!settings.autostartBluetoothInput ||
         isActive ||
         _finishedData != null ||
+        _finishedWeight != null ||
         state is! BluetoothStateReady) {
       return;
     }
@@ -152,6 +165,13 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
       return MeasurementSuccess(
         onTap: _returnToIdle,
         data: _finishedData!,
+      );
+    }
+
+    if (_finishedWeight != null) {
+      return WeightMeasurementSuccess(
+        onTap: _returnToIdle,
+        data: _finishedWeight!,
       );
     }
 
@@ -252,6 +272,17 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
             widget.onMeasurement(state.data.asBloodPressureRecord());
             setState(() => _finishedData = state.data);
           }
+        } else if (state is BleReadWeightSuccess) {
+          if (!hasImported) {
+            setState(() => hasImported = true);
+            if (bluetoothImportMode.isAutomatic || widget.onWeight == null) {
+              unawaited(_importWeight(state.data));
+            } else {
+              context.read<Settings>().weightInput = true;
+              widget.onWeight!(state.data.asBodyweightRecord());
+              setState(() => _finishedWeight = state.data);
+            }
+          }
         } else if (state is BleReadMultiple && bluetoothImportMode.isAutomatic && !hasImported) {
           setState(() => hasImported = true);
           unawaited(_importMeasurements(
@@ -290,6 +321,10 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
             measurements: state.data,
           ),
           BleReadSuccess() => MeasurementSuccess(
+            onTap: _returnToIdle,
+            data: state.data,
+          ),
+          BleReadWeightSuccess() => WeightMeasurementSuccess(
             onTap: _returnToIdle,
             data: state.data,
           ),
@@ -333,5 +368,38 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
       );
       _returnToIdle();
     });
+  }
+
+  Future<void> _importWeight(BleWeightData data) async {
+    BodyweightRepository? repo;
+    try {
+      repo = context.read<BodyweightRepository>();
+    } on ProviderNotFoundException {
+      repo = null;
+    }
+    if (repo != null) {
+      try {
+        final saved = await repo.get(DateRange.all());
+        if (newBleWeights([data], saved).isNotEmpty) {
+          await repo.add(data.asBodyweightRecord());
+        } else {
+          for (final (old, incoming) in bleWeightsToUpgrade([data], saved)) {
+            await repo.remove(old);
+            await repo.add(incoming.asBodyweightRecord());
+          }
+        }
+      } catch (error, stack) {
+        logger.severe('_importWeight failed', error, stack);
+        if (!mounted) return;
+        setState(() {
+          hasImported = false;
+          _importError = 'Could not save weight: $error';
+        });
+        return;
+      }
+    }
+    if (!mounted) return;
+    context.read<Settings>().weightInput = true;
+    setState(() => _finishedWeight = data);
   }
 }

@@ -143,6 +143,14 @@ class AddMultipleEntriesFormState
     }
   }
 
+  void _onExternalWeight(BodyweightRecord record) {
+    if (_singleEntryForm.currentState case final AddEntryFormState state) {
+      state.onExternalWeight(record);
+    } else {
+      logger.warning("Received external weight but couldn't fill form.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_multipleValues case final List<CombinedEntry> values) {
@@ -184,6 +192,7 @@ class AddMultipleEntriesFormState
             manager: BluetoothManager.create(),
             onMeasurement: _onExternalMeasurement,
             onAllMeasurements: _onExternalMeasurements,
+            onWeight: _onExternalWeight,
             bluetoothCubit: widget.bluetoothCubit,
           ),
         })(),

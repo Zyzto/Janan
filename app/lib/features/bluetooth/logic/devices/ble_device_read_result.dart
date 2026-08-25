@@ -1,4 +1,5 @@
 import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/ble_measurement_data.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_weight_data.dart';
 
 /// Outcome of a [BleDeviceProfile.read].
 sealed class BleDeviceReadResult {
@@ -12,6 +13,15 @@ class BleBloodPressureRead extends BleDeviceReadResult {
 
   /// Decoded measurements, oldest first when the device sent a dump.
   final List<BleMeasurementData> measurements;
+}
+
+/// A single body-weight reading.
+class BleWeightRead extends BleDeviceReadResult {
+  /// Create a successful scale read.
+  const BleWeightRead(this.weight);
+
+  /// Decoded weight.
+  final BleWeightData weight;
 }
 
 /// The profile could not read the device.

@@ -33,3 +33,12 @@ class BleReadSuccess extends BleReadState {
   /// Measurement decoded from the device.
   final BleMeasurementData data;
 }
+
+/// A body-weight reading from a supported scale.
+class BleReadWeightSuccess extends BleReadState {
+  /// Indicate a successful scale reading.
+  BleReadWeightSuccess(this.data);
+
+  /// Weight decoded from the scale.
+  final BleWeightData data;
+}

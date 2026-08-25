@@ -86,7 +86,7 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
     final likely = <BluetoothDevice>[];
     final other = <BluetoothDevice>[];
     for (final device in devices) {
-      if (isLikelyBloodPressureBluetoothDevice(
+      if (isLikelySupportedHealthBluetoothDevice(
         device,
         knownDevices: settings.knownBleDev,
       )) {

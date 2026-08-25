@@ -62,4 +62,19 @@ void main() {
       serviceUUIDs: const [],
     ), isFalse);
   });
+
+  test('matches Eufy P1 scale names', () {
+    expect(isEufyP1ScaleName('eufy T9147'), isTrue);
+    expect(isEufyP1ScaleName('T9146'), isTrue);
+    expect(isLikelyWeightScaleName('eufy T9147'), isTrue);
+    expect(isLikelySupportedHealthDevice(
+      deviceId: 'scale',
+      name: 'eufy T9147',
+      serviceUUIDs: const [],
+    ), isTrue);
+    expect(isEufyP1ScaleName('eufy T9149'), isFalse);
+    expect(isLikelyWeightScaleName('eufy T9149'), isTrue);
+    expect(isLikelyWeightScaleName('Eufy Smart Scale'), isFalse);
+    expect(isLikelyWeightScaleName('Headphones'), isFalse);
+  });
 }

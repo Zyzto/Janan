@@ -107,5 +107,27 @@ void main() {
         'yonker',
       );
     });
+
+    test('fff4 without fff2 is Eufy P1', () {
+      expect(
+        registry.resolveDiscovered(
+          name: 'eufy T9147',
+          serviceUUIDs: [uuid('fff0')],
+          characteristicUUIDs: [uuid('fff4'), uuid('fff1')],
+        )?.id,
+        'eufy-p1',
+      );
+    });
+
+    test('fff4 plus fff2 is the unsupported P2 stub', () {
+      expect(
+        registry.resolveDiscovered(
+          name: 'eufy T9149',
+          serviceUUIDs: [uuid('fff0')],
+          characteristicUUIDs: [uuid('fff4'), uuid('fff2')],
+        )?.id,
+        'eufy-p2',
+      );
+    });
   });
 }

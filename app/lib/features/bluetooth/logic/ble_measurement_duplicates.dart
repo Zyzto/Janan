@@ -1,4 +1,5 @@
 import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/ble_measurement_data.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_weight_data.dart';
 import 'package:health_data_store/health_data_store.dart';
 
 /// Identity used to treat a BLE reading as the same measurement as a diary entry.
@@ -33,4 +34,52 @@ List<BleMeasurementData> newBleMeasurements(
     fresh.add(measurement);
   }
   return fresh;
+}
+
+/// Incoming scale readings that are not already in [saved].
+///
+/// Two readings match when the kilogram value agrees to two decimals and the
+/// timestamps are within five minutes, so a just-taken weigh-in is not stored
+/// twice if two readers both see it.
+List<BleWeightData> newBleWeights(
+  Iterable<BleWeightData> incoming,
+  Iterable<BodyweightRecord> saved, {
+  Duration window = const Duration(minutes: 5),
+}) {
+  final fresh = <BleWeightData>[];
+  final seen = <int>{};
+  for (final reading in incoming) {
+    final raw = reading.rawWeight;
+    if (seen.contains(raw)) continue;
+    final duplicate = saved.any((record) {
+      if ((record.weight.kg * 100).round() != raw) return false;
+      return record.time.difference(reading.time).abs() <= window;
+    });
+    if (duplicate) continue;
+    seen.add(raw);
+    fresh.add(reading);
+  }
+  return fresh;
+}
+
+/// Incoming scale readings that add impedance to a recent weight-only save.
+List<(BodyweightRecord, BleWeightData)> bleWeightsToUpgrade(
+  Iterable<BleWeightData> incoming,
+  Iterable<BodyweightRecord> saved, {
+  Duration window = const Duration(minutes: 5),
+}) {
+  final upgrades = <(BodyweightRecord, BleWeightData)>[];
+  for (final reading in incoming) {
+    if (reading.impedance == null || reading.impedance! <= 0) continue;
+    BodyweightRecord? match;
+    for (final record in saved) {
+      if ((record.weight.kg * 100).round() != reading.rawWeight) continue;
+      if (record.time.difference(reading.time).abs() > window) continue;
+      if (record.impedanceOhm != null && record.impedanceOhm! > 0) continue;
+      match = record;
+      break;
+    }
+    if (match != null) upgrades.add((match, reading));
+  }
+  return upgrades;
 }

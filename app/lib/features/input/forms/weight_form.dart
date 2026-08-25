@@ -59,12 +59,14 @@ class WeightFormState extends FormStateBase<Weight, WeightForm> {
 
   @override
   void fillForm(Weight? value) {
-    if (value == null) {
-      _controller.text = '';
-    } else {
-      final w = context.read<Settings>().weightUnit.extract(widget.initialValue!);
-      _controller.text = w.toString();
-    }
+    setState(() {
+      if (value == null) {
+        _controller.text = '';
+      } else {
+        final w = context.read<Settings>().weightUnit.extract(value);
+        _controller.text = w.toString();
+      }
+    });
   }
 
   @override

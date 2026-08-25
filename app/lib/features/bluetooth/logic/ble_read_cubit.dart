@@ -4,6 +4,8 @@ import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/ble_
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_device_read_result.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_device_registry.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_gatt_session.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_weight_data.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/eufy_p1_scale_profile.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/gatt_blood_pressure_profile.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/microlife_profile.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/yonker_profile.dart';
@@ -46,6 +48,10 @@ class BleReadCubit extends Cubit<BleReadState> with TypeLogger {
   static const microlifeServiceUUID = MicrolifeProfile.serviceUUID;
   static const microlifeNotifyCharacteristicUUID = MicrolifeProfile.notifyCharacteristicUUID;
   static const microlifeWriteCharacteristicUUID = MicrolifeProfile.writeCharacteristicUUID;
+
+  static const eufyScaleServiceUUID = EufyP1ScaleProfile.serviceUUID;
+  static const eufyScaleNotifyCharacteristicUUID = EufyP1ScaleProfile.notifyCharacteristicUUID;
+  static const eufyScaleWriteCharacteristicUUID = EufyP1ScaleProfile.writeCharacteristicUUID;
 
   static const _connectTimeout = Duration(seconds: 20);
 
@@ -158,6 +164,8 @@ class BleReadCubit extends Cubit<BleReadState> with TypeLogger {
         } else {
           emit(BleReadMultiple(measurements));
         }
+      case BleWeightRead(:final weight):
+        emit(BleReadWeightSuccess(weight));
       case BleDeviceReadFailure(:final reason):
         emit(BleReadFailure(reason));
     }
