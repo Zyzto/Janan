@@ -6,4 +6,6 @@ It is a fork of [derdilla/blood-pressure-monitor-fl](https://github.com/derdilla
 
 I write a lot of this with AI coding agents. The original project does not accept that, so I do not send PRs there.
 
-This tree is not the Play Store, F-Droid, or official GitHub Release app. Those stay with upstream.
+I do not own the app. That includes the name, the icon, Play Store, F-Droid, Weblate, official GitHub Releases, and derdilla's signing key. GitHub Releases on **this** repo are only my fork builds, for [Obtainium](https://github.com/ImranR98/Obtainium).
+
+The Android application id is still `com.derdilla.bloodPressureApp`. That is leftover. A store install and this APK cannot replace each other.

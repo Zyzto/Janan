@@ -1,13 +1,9 @@
-*developer documentation - users can safely ignore this*
+# Release process
 
-Upstream release checklist. This [fork](../FORK.md) is not the official Play or GitHub Release. I use AI here.
+This [fork](../FORK.md) is not the official Play, F-Droid, or derdilla GitHub Release. I use AI here.
 
-## App release checklist
+How this tree ships APKs: [docs/ci.md](ci.md).
 
-- [ ] no remaining breaking issues
-- [ ] Write changelog and wait ~1 week if possible
-- [ ] add translation from [Weblate](https://hosted.weblate.org/projects/blood-pressure-monitor-fl/#repository)
-- [ ] in case new languages got added, add them to `iso_lang_names.dart`
-- [ ] Run tools/release_tool
-- [ ] Manuall release testing: upgrading data and core features
-- [ ] make Play release and create a GitHub release containing APK and debug symbols
+Tag `vX.Y.Z` after `app/pubspec.yaml` says `X.Y.Z`. Actions signs with **your** keystore secrets and attaches `blood-pressure-monitor-X.Y.Z.apk`. Obtainium follows that release.
+
+Do not upload this APK to Play or F-Droid. Those listings are not ours.

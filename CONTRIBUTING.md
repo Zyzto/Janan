@@ -24,6 +24,9 @@ Then:
 - `flutter run --flavor github`
 - `flutter build apk --flavor github` or `--flavor fdroid`
 
+CI, signing secrets, and Obtainium releases are in [docs/ci.md](docs/ci.md). I do not own Play or the upstream key.
+
+
 After you change a `@GenerateSettings` file:
 
 `dart run build_runner build --build-filter="lib/model/storage/*.dart"`
