@@ -32,6 +32,7 @@ class BodyweightRepositoryImpl extends BodyweightRepository {
       await txn.insert('Weight', {
         'entryID': entryID,
         'weightKg': record.weight.kg,
+        'impedanceOhm': record.impedanceOhm,
       });
     });
   }
@@ -39,7 +40,7 @@ class BodyweightRepositoryImpl extends BodyweightRepository {
   @override
   Future<List<BodyweightRecord>> get(DateRange range) async {
     final results = await _db.rawQuery(
-        'SELECT timestampUnixS, weightKg '
+        'SELECT timestampUnixS, weightKg, impedanceOhm '
         'FROM Timestamps AS t '
         'INNER JOIN Weight AS w ON t.entryID = w.entryID '
         'WHERE timestampUnixS BETWEEN ? AND ?',
@@ -47,8 +48,10 @@ class BodyweightRepositoryImpl extends BodyweightRepository {
     return <BodyweightRecord>[
       for (final r in results)
         BodyweightRecord(
-            time: DateTimeS.fromSecondsSinceEpoch(r['timestampUnixS'] as int),
-            weight: Weight.kg(r['weightKg'] as double)),
+          time: DateTimeS.fromSecondsSinceEpoch(r['timestampUnixS'] as int),
+          weight: Weight.kg(r['weightKg'] as double),
+          impedanceOhm: (r['impedanceOhm'] as num?)?.toDouble(),
+        ),
     ];
   }
 

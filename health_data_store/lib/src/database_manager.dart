@@ -38,10 +38,13 @@ class DatabaseManager {
 
     if (!isReadOnly && await dbMngr._db.getVersion() < 3) {
       await dbMngr._setUpTables();
-      await dbMngr._db.setVersion(4);
+      await dbMngr._db.setVersion(5);
     } else if (!isReadOnly && await dbMngr._db.getVersion() == 3) {
       await dbMngr._setupWeightTable(dbMngr._db);
-      await dbMngr._db.setVersion(4);
+      await dbMngr._db.setVersion(5);
+    } else if (!isReadOnly && await dbMngr._db.getVersion() == 4) {
+      await dbMngr._addWeightImpedanceColumn(dbMngr._db);
+      await dbMngr._db.setVersion(5);
     }
     // When updating the schema the update steps are maintained for ensured
     // compatability.
@@ -107,9 +110,16 @@ class DatabaseManager {
     await executor.execute('CREATE TABLE "Weight" ('
         '"entryID"	    INTEGER NOT NULL,'
         '"weightKg"     REAL NOT NULL,'
+        '"impedanceOhm" REAL,'
         'FOREIGN KEY("entryID") REFERENCES "Timestamps"("entryID"),'
         'PRIMARY KEY("entryID")'
         ');');
+  }
+
+  Future<void> _addWeightImpedanceColumn(DatabaseExecutor executor) async {
+    await executor.execute(
+      'ALTER TABLE "Weight" ADD COLUMN "impedanceOhm" REAL',
+    );
   }
 
   /// Removes unused and deleted entries rows.

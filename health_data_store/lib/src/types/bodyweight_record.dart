@@ -13,5 +13,8 @@ abstract class BodyweightRecord with _$BodyweightRecord {
 
     /// Weight at [time].
     required Weight weight,
+
+    /// Foot-to-foot bio-impedance in ohms, when a scale reported it.
+    double? impedanceOhm,
   }) = _BodyweightRecord;
 }
