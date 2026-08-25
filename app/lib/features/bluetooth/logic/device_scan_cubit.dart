@@ -8,6 +8,7 @@ import 'package:blood_pressure_app/features/bluetooth/logic/ble_device_filter.da
 import 'package:blood_pressure_app/features/bluetooth/logic/ble_read_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/bluetooth_cubit.dart';
 import 'package:blood_pressure_app/logging.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:blood_pressure_app/model/storage/settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,8 +76,7 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
     }
 
     final knownHits = devices.where((dev) =>
-      settings.knownBleDev.contains(dev.deviceId)
-      || settings.knownBleDev.contains(dev.name)).toList();
+      settings.knownBleDev.any((known) => known.matches(dev.deviceId, dev.name))).toList();
 
     if (knownHits.length == 1 && autoRead) {
       unawaited(_startRead(knownHits.first));
@@ -127,10 +127,18 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
 
   void _rememberDevice(BluetoothDevice device) {
     final list = settings.knownBleDev.toList();
-    if (!list.contains(device.deviceId) && !list.contains(device.name)) {
-      list.add(device.deviceId);
-      settings.knownBleDev = list;
+    if (list.any((known) => known.matches(device.deviceId, device.name))) {
+      settings.knownBleDev = [
+        for (final known in list)
+          if (known.matches(device.deviceId, device.name))
+            known.copyWith(id: device.deviceId, name: device.name)
+          else
+            known,
+      ];
+      return;
     }
+    list.add(KnownBleDevice(id: device.deviceId, name: device.name));
+    settings.knownBleDev = list;
   }
 
   /// Stop discovering without closing the cubit.

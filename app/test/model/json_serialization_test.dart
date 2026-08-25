@@ -2,6 +2,7 @@ import 'package:blood_pressure_app/features/export_import/model/column.dart';
 import 'package:blood_pressure_app/model/blood_pressure/pressure_unit.dart';
 import 'package:blood_pressure_app/model/bluetooth_input_mode.dart';
 import 'package:blood_pressure_app/model/horizontal_graph_line.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:blood_pressure_app/model/storage/storage.dart';
 import 'package:blood_pressure_app/model/storage/types/export_format_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/interval_storage_setting.dart';
@@ -93,7 +94,10 @@ void main() {
         compactList: false,
         horizontalGraphLines: [HorizontalGraphLine(Colors.blue, 1230)],
         bottomAppBars: true,
-        knownBleDev: ['a', 'b'],
+        knownBleDev: [
+          const KnownBleDevice(id: 'a', name: 'Device A'),
+          const KnownBleDevice(id: 'b', name: 'Device B'),
+        ],
         bleInput: BluetoothInputMode.newBluetoothInputCrossPlatform,
         weightInput: true,
         weightUnit: WeightUnit.st,
@@ -131,6 +135,14 @@ void main() {
       expect(initial.weightUnit, fromJson.weightUnit);
 
       expect(initial.toJson(), fromJson.toJson());
+    });
+
+    test('migrates legacy knownBleDev string list', () {
+      final settings = Settings.fromJson('{"knownBleDev":["legacy-id","X4 Smart"]}');
+      expect(settings.knownBleDev, [
+        const KnownBleDevice(id: 'legacy-id', name: 'legacy-id'),
+        const KnownBleDevice(id: 'X4 Smart', name: 'X4 Smart'),
+      ]);
     });
 
     test('should not crash when parsing incorrect json', () {

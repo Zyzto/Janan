@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:blood_pressure_app/features/old_bluetooth/logic/bluetooth_cubit.dart';
 import 'package:blood_pressure_app/features/old_bluetooth/logic/flutter_blue_plus_mockable.dart';
 import 'package:blood_pressure_app/logging.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:blood_pressure_app/model/storage/settings.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -69,7 +70,8 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
     // characteristic as users have to select their device anyways.
     if(state is DeviceSelected) return;
     final preferred = devices.firstWhereOrNull((dev) =>
-      settings.knownBleDev.contains(dev.device.platformName));
+      settings.knownBleDev.any((known) =>
+          known.matches(dev.device.platformName, dev.device.platformName)));
     if (preferred != null) {
       _flutterBluePlus.stopScan()
         .then((_) => emit(DeviceSelected(preferred.device)));
@@ -97,8 +99,10 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
     }
     assert(!_flutterBluePlus.isScanningNow);
     emit(DeviceSelected(device));
-    final List<String> list = settings.knownBleDev.toList();
-    list.add(device.platformName);
-    settings.knownBleDev = list;
+    final list = settings.knownBleDev.toList();
+    if (!list.any((known) => known.matches(device.platformName))) {
+      list.add(KnownBleDevice(id: device.platformName, name: device.platformName));
+      settings.knownBleDev = list;
+    }
   }
 }

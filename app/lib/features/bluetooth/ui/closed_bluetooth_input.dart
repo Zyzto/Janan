@@ -30,7 +30,7 @@ class ClosedBluetoothInput extends StatelessWidget with TypeLogger {
     final known = context.watch<Settings>().knownBleDev;
     if (known.isEmpty) return localizations.bluetoothInput;
     if (known.length == 1) {
-      return localizations.readFromDevice(known.first);
+      return localizations.readFromDevice(known.first.displayName);
     }
     return localizations.readFromDevices(known.length);
   }

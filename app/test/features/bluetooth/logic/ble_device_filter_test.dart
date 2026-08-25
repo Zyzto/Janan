@@ -1,5 +1,6 @@
 import 'package:blood_pressure_app/features/bluetooth/logic/ble_device_filter.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/ble_read_cubit.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -30,12 +31,27 @@ void main() {
     expect(isLikelyBloodPressureName(null), isFalse);
   });
 
+  test('matches a remembered Beurer name with different spacing', () {
+    expect(isLikelyBloodPressureDevice(
+      deviceId: 'other-uuid',
+      name: 'BM 59',
+      serviceUUIDs: const [],
+      knownDevices: const [KnownBleDevice(id: 'legacy', name: 'BM59')],
+    ), isTrue);
+  });
+
   test('matches already paired devices', () {
     expect(isLikelyBloodPressureDevice(
       deviceId: 'abc',
       name: 'Headphones',
       serviceUUIDs: const [],
-      knownDevices: const ['abc'],
+      knownDevices: const [KnownBleDevice(id: 'abc', name: 'Headphones')],
+    ), isTrue);
+    expect(isLikelyBloodPressureDevice(
+      deviceId: 'other',
+      name: 'Headphones',
+      serviceUUIDs: const [],
+      knownDevices: const [KnownBleDevice(id: 'abc', name: 'Headphones')],
     ), isTrue);
   });
 

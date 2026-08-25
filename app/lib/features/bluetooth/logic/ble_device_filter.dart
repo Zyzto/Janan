@@ -1,5 +1,6 @@
 import 'package:blood_pressure_app/features/bluetooth/backend/bluetooth_backend.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_device_registry.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
 
 /// Whether [advertisedName] looks like a documented blood-pressure meter.
@@ -14,9 +15,9 @@ bool isLikelyBloodPressureDevice({
   required String deviceId,
   required String name,
   required Iterable<UUID> serviceUUIDs,
-  List<String> knownDevices = const [],
+  List<KnownBleDevice> knownDevices = const [],
 }) {
-  if (knownDevices.contains(deviceId) || knownDevices.contains(name)) {
+  if (knownDevices.any((device) => device.matches(deviceId, name))) {
     return true;
   }
   return defaultBleDeviceRegistry.anyAdvertisementMatch(
@@ -28,7 +29,7 @@ bool isLikelyBloodPressureDevice({
 /// [isLikelyBloodPressureDevice] using a backend [BluetoothDevice].
 bool isLikelyBloodPressureBluetoothDevice(
   BluetoothDevice device, {
-  List<String> knownDevices = const [],
+  List<KnownBleDevice> knownDevices = const [],
 }) => isLikelyBloodPressureDevice(
   deviceId: device.deviceId,
   name: device.name,

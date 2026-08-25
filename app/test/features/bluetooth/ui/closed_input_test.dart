@@ -5,6 +5,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/bluetooth_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/closed_bluetooth_input.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:blood_pressure_app/model/storage/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -80,7 +81,9 @@ void main() {
         bluetoothCubit: cubit,
         onStarted: () {},
       ),
-      settings: Settings(knownBleDev: const ['X4 Smart']),
+      settings: Settings(knownBleDev: const [
+        KnownBleDevice(id: 'abc', name: 'X4 Smart'),
+      ]),
     ));
     await tester.pumpAndSettle();
 

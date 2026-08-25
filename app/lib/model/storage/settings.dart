@@ -5,13 +5,14 @@ import 'package:blood_pressure_app/model/blood_pressure/pressure_unit.dart';
 import 'package:blood_pressure_app/model/bluetooth_input_mode.dart';
 import 'package:blood_pressure_app/model/bluetooth_measurement_import_mode.dart';
 import 'package:blood_pressure_app/model/horizontal_graph_line.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:blood_pressure_app/model/storage/types/bluetooth_input_mode_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/bluetooth_measurement_import_mode_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/color_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/horizontal_graph_line_list_setting.dart';
+import 'package:blood_pressure_app/model/storage/types/known_ble_device_list_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/locale_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/pressure_unit_setting.dart';
-import 'package:blood_pressure_app/model/storage/types/string_list_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/theme_mode_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/weight_unit_setting.dart';
 import 'package:blood_pressure_app/model/weight_unit.dart';
@@ -135,7 +136,8 @@ class _SettingsSpec extends ChangeNotifier {
   /// Bluetooth devices that previously connected.
   ///
   /// The exact value that is stored here is determined in [DeviceScanCubit].
-  final Setting<List<String>> knownBleDev = StringListSetting(initialValue: []);
+  final Setting<List<KnownBleDevice>> knownBleDev =
+      KnownBleDeviceListSetting(initialValue: []);
 
   /// Preferred unit for bodyweight.
   final Setting<WeightUnit> weightUnit = WeightUnitSetting(

@@ -214,7 +214,7 @@ class BluetoothInputState extends State<BluetoothInput> with TypeLogger {
           DeviceListLoading() => DeviceScanPlaceholder(
             onClosed: _returnToIdle,
             deviceName: settings.knownBleDev.length == 1
-                ? settings.knownBleDev.first
+                ? settings.knownBleDev.first.displayName
                 : null,
           ),
           DeviceListAvailable() => DeviceSelection(
