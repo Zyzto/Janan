@@ -1,3 +1,4 @@
+import 'package:blood_pressure_app/features/measurement_list/weight_detail_screen.dart';
 import 'package:blood_pressure_app/features/measurement_list/weight_list.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:blood_pressure_app/model/storage/interval_store_manager.dart';
@@ -33,6 +34,8 @@ void main() {
     expect(find.text('122.1 kg'), findsOneWidget);
     expect(find.text('70 kg'), findsOneWidget);
     expect(find.text('7000.12 kg'), findsOneWidget);
+    expect(find.byIcon(Icons.edit), findsNothing);
+    expect(find.byIcon(Icons.delete), findsNothing);
 
     expect(
       tester.getCenter(find.textContaining('2003')).dy,
@@ -47,6 +50,26 @@ void main() {
       lessThan(tester.getCenter(find.textContaining('2000')).dy),
     );
   });
+
+  testWidgets('opens details when a row is tapped', (tester) async {
+    final interval = IntervalStorage();
+    interval.changeStepSize(TimeStep.lifetime);
+    final repo = MockBodyweightRepository();
+    await repo.add(BodyweightRecord(time: DateTime(2001), weight: Weight.kg(123.0)));
+
+    await tester.pumpWidget(appBase(
+      weightRepo: repo,
+      intervallStoreManager: IntervalStoreManager(mainPage: interval),
+      const WeightList(rangeType: IntervalStoreManagerLocation.mainPage),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('123 kg'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(WeightDetailScreen), findsOneWidget);
+  });
+
   testWidgets('deletes elements from repo', (tester) async {
     final interval = IntervalStorage();
     interval.changeStepSize(TimeStep.lifetime);
@@ -62,9 +85,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('123 kg'), findsOneWidget);
+    expect(find.byIcon(Icons.delete), findsNothing);
+
+    await tester.tap(find.text('123 kg'));
+    await tester.pumpAndSettle();
+
     expect(find.byIcon(Icons.delete), findsOneWidget);
     expect(find.text(localizations.confirmDelete), findsNothing);
-    expect(find.text(localizations.btnConfirm), findsNothing);
 
     await tester.tap(find.byIcon(Icons.delete));
     await tester.pumpAndSettle();
@@ -75,12 +102,12 @@ void main() {
     await tester.tap(find.text(localizations.btnConfirm));
     await tester.pumpAndSettle();
     await tester.pumpAndSettle();
-    await tester.pumpAndSettle();
-    await tester.pumpAndSettle();
 
+    expect(find.byType(WeightDetailScreen), findsNothing);
     expect(find.text('123 kg'), findsNothing);
     expect(repo.data, isEmpty);
   });
+
   testWidgets('respects confirm deletion setting', (tester) async {
     final interval = IntervalStorage();
     interval.changeStepSize(TimeStep.lifetime);
@@ -96,7 +123,9 @@ void main() {
     final localizations = await AppLocalizations.delegate.load(const Locale('en'));
     await tester.pumpAndSettle();
 
-    expect(find.text('123 kg'), findsOneWidget);
+    await tester.tap(find.text('123 kg'));
+    await tester.pumpAndSettle();
+
     expect(find.text(localizations.confirmDelete), findsNothing);
 
     await tester.tap(find.byIcon(Icons.delete));
@@ -105,6 +134,7 @@ void main() {
     expect(find.text(localizations.confirmDelete), findsNothing);
     expect(find.text('123 kg'), findsNothing);
   });
+
   testWidgets('respects confirm weight unit setting', (tester) async {
     final interval = IntervalStorage();
     interval.changeStepSize(TimeStep.lifetime);

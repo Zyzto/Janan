@@ -1,11 +1,10 @@
-import 'package:blood_pressure_app/components/confirm_deletion_dialog.dart';
-import 'package:blood_pressure_app/data_util/entry_context.dart';
 import 'package:blood_pressure_app/data_util/repository_builder.dart';
-import 'package:blood_pressure_app/model/combined_entry.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/eufy_body_composition.dart';
+import 'package:blood_pressure_app/features/measurement_list/previous_measurement.dart';
+import 'package:blood_pressure_app/features/measurement_list/weight_detail_screen.dart';
+import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:blood_pressure_app/model/storage/storage.dart';
-import 'package:blood_pressure_app/model/weight_unit.dart';
 import 'package:flutter/material.dart';
-import 'package:health/health.dart';
 import 'package:health_data_store/health_data_store.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +21,8 @@ class WeightList extends StatelessWidget {
   Widget build(BuildContext context) {
     final format = DateFormat(context.select<Settings, String>((s) => s.dateFormatString));
     final weightUnit = context.select((Settings s) => s.weightUnit);
+    final settings = context.watch<Settings>();
+    final localizations = AppLocalizations.of(context)!;
     return RepositoryBuilder<BodyweightRecord, BodyweightRepository>(
       rangeType: rangeType,
       onData: (context, records) {
@@ -36,50 +37,30 @@ class WeightList extends StatelessWidget {
         records.sort((a, b) => b.time.compareTo(a.time));
         return ListView.builder(
           itemCount: records.length,
-          itemBuilder: (context, idx) => ListTile(
-            title: Text(_buildWeightText(weightUnit, records[idx].weight)),
-            subtitle: Text(format.format(records[idx].time)),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () => context.createEntry(CombinedEntry(
-                    time: records[idx].time,
-                    weight: records[idx],
-                  )),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () async {
-                    final repo = context.read<BodyweightRepository>();
-                    final hcSettings = context.read<HealthConnectSettings>();
-                    if ((!context.read<Settings>().confirmDeletion) || await showConfirmDeletionDialog(context)) {
-                      await repo.remove(records[idx]);
-                      if (hcSettings.useHealthConnect && hcSettings.syncWeightMeasurements){
-                        await Health().delete(
-                          type: HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
-                          startTime: records[idx].time.subtract(Duration(milliseconds: 500)),
-                          endTime: records[idx].time.add(Duration(milliseconds: 500)),
-                        );
-                      }
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
+          itemBuilder: (context, idx) {
+            final composition = EufyBodyComposition.fromRecord(records[idx], settings);
+            final date = format.format(records[idx].time);
+            return ListTile(
+              title: Text(weightUnit.format(records[idx].weight)),
+              subtitle: Text(composition == null
+                  ? date
+                  : '$date\n${localizations.bodyCompositionSubtitle(
+                      composition.bodyFatPercent.toStringAsFixed(1),
+                      composition.muscleKg.toStringAsFixed(1),
+                    )}'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => WeightDetailScreen(
+                    record: records[idx],
+                    previous: previousWeightInList(records, idx),
+                  ),
+                ));
+              },
+            );
+          },
         );
       },
     );
-  }
-
-  String _buildWeightText(WeightUnit u, Weight w) {
-    String weightStr = u.extract(w).toStringAsFixed(2);
-    if (weightStr.endsWith('0')) weightStr = weightStr.substring(0, weightStr.length - 1);
-    if (weightStr.endsWith('0')) weightStr = weightStr.substring(0, weightStr.length - 1);
-    if (weightStr.endsWith('.')) weightStr = weightStr.substring(0, weightStr.length - 1);
-
-    return '$weightStr ${u.name}';
   }
 }

@@ -65,8 +65,6 @@ void main() {
     expect(find.byType(AddEntryDialog), findsOneWidget);
     await tester.tap(find.byIcon(Icons.close));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_forever));
-    await tester.pumpAndSettle();
 
     expect(find.byType(AddEntryDialog), findsNothing);
 
@@ -202,11 +200,25 @@ void main() {
     expect(thirdFocusedTextField, findsOneWidget);
     expect(find.descendant(of: thirdFocusedTextField, matching: find.text('Note (optional)')), findsOneWidget);
   });
-  testWidgets('warns before discarding', (tester) async {
+  testWidgets('closes an unchanged measurement without asking', (tester) async {
     await loadDialog(tester, (context) =>
         showAddEntryDialog(context, mockEntry(sys: 12)));
 
     expect(find.byType(AddEntryDialog), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(find.byType(AddEntryDialog), findsNothing);
+  });
+
+  testWidgets('warns before discarding edits', (tester) async {
+    await loadDialog(tester, (context) =>
+        showAddEntryDialog(context, mockEntry(sys: 12)));
+
+    expect(find.byType(AddEntryDialog), findsOneWidget);
+    await tester.enterText(
+      find.ancestor(of: find.text('Systolic').first, matching: find.byType(TextField)),
+      '130',
+    );
     await tester.tap(find.byIcon(Icons.close));
     await tester.pumpAndSettle();
     expect(find.byType(AddEntryDialog), findsOneWidget);

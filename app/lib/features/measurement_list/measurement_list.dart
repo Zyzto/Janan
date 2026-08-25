@@ -1,5 +1,5 @@
-import 'package:blood_pressure_app/data_util/entry_context.dart';
 import 'package:blood_pressure_app/features/measurement_list/measurement_list_entry.dart';
+import 'package:blood_pressure_app/features/measurement_list/previous_measurement.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:blood_pressure_app/model/combined_entry.dart';
 import 'package:blood_pressure_app/model/storage/settings.dart';
@@ -70,7 +70,7 @@ class MeasurementList extends StatelessWidget {
             itemCount: entries.length,
             itemBuilder: (context, idx) => MeasurementListRow(
               data: entries[idx],
-              onRequestEdit: () => context.createEntry(entries[idx]),
+              previous: previousBloodPressureInList(entries, idx),
             ),
           ),
         ),

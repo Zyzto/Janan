@@ -51,4 +51,7 @@ abstract class FormStateBase<T, G extends FormBase<T>> extends State<G> {
 
   /// Whether all inputs have the empty state
   bool get isEmpty;
+
+  /// Whether the user changed the form from [FormBase.initialValue].
+  bool get isDirty => !isEmpty;
 }

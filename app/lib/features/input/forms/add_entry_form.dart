@@ -108,6 +108,14 @@ class AddEntryFormState extends FormStateBase<CombinedEntry, AddEntryForm>
   );
 
   @override
+  bool get isDirty =>
+      (_timeForm.currentState?.isDirty ?? false)
+      || (_bpForm.currentState?.isDirty ?? false)
+      || (_weightForm.currentState?.isDirty ?? false)
+      || (_intakeForm.currentState?.isDirty ?? false)
+      || (_noteForm.currentState?.isDirty ?? false);
+
+  @override
   bool validate() {
     final settings = context.read<Settings>();
 

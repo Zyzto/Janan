@@ -64,6 +64,11 @@ class NoteFormState extends FormStateBase<(String?, Color?), NoteForm> {
   bool get isEmpty => _controller.text.isEmpty;
 
   @override
+  bool get isDirty =>
+      _controller.text != (widget.initialValue?.$1 ?? '')
+      || _color != widget.initialValue?.$2;
+
+  @override
   Widget build(BuildContext context) => Column(
     children: [
       Padding(

@@ -1,0 +1,677 @@
+import 'package:blood_pressure_app/l10n/app_localizations.dart';
+import 'package:blood_pressure_app/model/blood_pressure/pressure_unit.dart';
+import 'package:blood_pressure_app/model/body_sex.dart';
+import 'package:blood_pressure_app/model/weight_unit.dart';
+import 'package:flutter/material.dart';
+import 'package:health_data_store/health_data_store.dart';
+
+/// Metric that can open a description and range card.
+enum MetricKind {
+  /// Scale kilogram reading.
+  weight,
+  /// Body mass index.
+  bmi,
+  /// Body-fat percentage.
+  bodyFat,
+  /// Muscle mass in kilograms.
+  muscle,
+  /// Bone mass in kilograms.
+  bone,
+  /// Body-water percentage.
+  water,
+  /// Lean body mass in kilograms.
+  lbm,
+  /// Basal metabolic rate.
+  bmr,
+  /// Systolic pressure.
+  sys,
+  /// Diastolic pressure.
+  dia,
+  /// Pulse in bpm.
+  pulse,
+}
+
+/// Color role for a range band.
+enum MetricBandTone {
+  /// Typical or preferred.
+  typical,
+  /// Elevated or low.
+  elevated,
+  /// High risk.
+  high,
+}
+
+/// One labeled interval on a metric.
+class MetricRangeBand {
+  /// Create a range band.
+  const MetricRangeBand({
+    required this.id,
+    required this.label,
+    required this.tone,
+    required this.interval,
+    this.min,
+    this.maxExclusive,
+  });
+
+  /// Stable id for tests.
+  final String id;
+
+  /// Localized band name.
+  final String label;
+
+  /// Color role.
+  final MetricBandTone tone;
+
+  /// Displayed interval, such as `18.5–24.9`.
+  final String interval;
+
+  /// Inclusive lower bound, when the band has one.
+  final double? min;
+
+  /// Exclusive upper bound, when the band has one.
+  final double? maxExclusive;
+
+  /// Whether [value] falls in this band.
+  bool contains(double value) {
+    if (min != null && value < min!) return false;
+    if (maxExclusive != null && value >= maxExclusive!) return false;
+    return true;
+  }
+}
+
+/// Localized description, ranges, and the band that contains [current].
+class MetricInfo {
+  /// Create a resolved metric card model.
+  const MetricInfo({
+    required this.kind,
+    required this.title,
+    required this.description,
+    required this.formattedValue,
+    required this.icon,
+    required this.current,
+    required this.bands,
+    this.warnLabel,
+    this.note,
+    this.barMin,
+    this.barMax,
+  });
+
+  /// Which metric this describes.
+  final MetricKind kind;
+
+  /// Localized title.
+  final String title;
+
+  /// Localized explanation.
+  final String description;
+
+  /// Current reading as shown on the details row.
+  final String formattedValue;
+
+  /// Icon used on the details row.
+  final IconData icon;
+
+  /// Numeric current value used for classification.
+  final double current;
+
+  /// Ordered bands, when the metric has them.
+  final List<MetricRangeBand> bands;
+
+  /// Optional “Warn at …” chip for sys/dia.
+  final String? warnLabel;
+
+  /// Optional extra chip when there are no numeric bands.
+  final String? note;
+
+  /// Lower bound of the segment bar.
+  final double? barMin;
+
+  /// Upper bound of the segment bar.
+  final double? barMax;
+
+  /// Whether a segmented range bar can be drawn.
+  bool get showBar =>
+      bands.length >= 2 && barMin != null && barMax != null && barMax! > barMin!;
+
+  /// Band that contains [current], when any does.
+  MetricRangeBand? get currentBand {
+    for (final band in bands) {
+      if (band.contains(current)) return band;
+    }
+    return null;
+  }
+
+  /// 0–1 position of [current] on the segment bar.
+  double get barFraction {
+    if (!showBar) return 0;
+    return ((current - barMin!) / (barMax! - barMin!)).clamp(0.0, 1.0);
+  }
+
+  /// Build localized info for [kind].
+  static MetricInfo resolve({
+    required MetricKind kind,
+    required AppLocalizations localizations,
+    required double current,
+    required String formattedValue,
+    BodySex? sex,
+    double? heightCm,
+    double? weightKg,
+    WeightUnit weightUnit = WeightUnit.kg,
+    PressureUnit pressureUnit = PressureUnit.mmHg,
+    int sysWarn = 120,
+    int diaWarn = 80,
+  }) {
+    switch (kind) {
+      case MetricKind.weight:
+        return _weight(
+          localizations: localizations,
+          current: current,
+          formattedValue: formattedValue,
+          heightCm: heightCm,
+          weightUnit: weightUnit,
+        );
+      case MetricKind.bmi:
+        return _bmi(localizations, current, formattedValue);
+      case MetricKind.bodyFat:
+        return _bodyFat(localizations, current, formattedValue, sex);
+      case MetricKind.muscle:
+        return MetricInfo(
+          kind: kind,
+          title: localizations.muscleMass,
+          description: localizations.metricInfoMuscleDesc,
+          formattedValue: formattedValue,
+          icon: Icons.fitness_center,
+          current: current,
+          bands: const [],
+          note: localizations.metricHigherIsBetter,
+        );
+      case MetricKind.bone:
+        return _bone(localizations, current, formattedValue, weightKg);
+      case MetricKind.water:
+        return _water(localizations, current, formattedValue, sex);
+      case MetricKind.lbm:
+        return MetricInfo(
+          kind: kind,
+          title: localizations.leanBodyMass,
+          description: localizations.metricInfoLbmDesc,
+          formattedValue: formattedValue,
+          icon: Icons.monitor_weight_outlined,
+          current: current,
+          bands: const [],
+        );
+      case MetricKind.bmr:
+        return MetricInfo(
+          kind: kind,
+          title: localizations.bmr,
+          description: localizations.metricInfoBmrDesc,
+          formattedValue: formattedValue,
+          icon: Icons.local_fire_department_outlined,
+          current: current,
+          bands: const [],
+        );
+      case MetricKind.sys:
+        return _sys(localizations, current, formattedValue, pressureUnit, sysWarn);
+      case MetricKind.dia:
+        return _dia(localizations, current, formattedValue, pressureUnit, diaWarn);
+      case MetricKind.pulse:
+        return _pulse(localizations, current, formattedValue);
+    }
+  }
+
+  static MetricInfo _weight({
+    required AppLocalizations localizations,
+    required double current,
+    required String formattedValue,
+    required double? heightCm,
+    required WeightUnit weightUnit,
+  }) {
+    final bands = <MetricRangeBand>[];
+    double? barMin;
+    double? barMax;
+    if (heightCm != null && heightCm > 0) {
+      final heightM = heightCm / 100;
+      final low = weightUnit.extract(Weight.kg(18.5 * heightM * heightM));
+      final high = weightUnit.extract(Weight.kg(24.9 * heightM * heightM));
+      bands.add(MetricRangeBand(
+        id: 'healthy',
+        label: localizations.metricHealthyWeight,
+        tone: MetricBandTone.typical,
+        interval: '${_format(low)}–${_format(high)} ${weightUnit.name}',
+        min: low,
+        maxExclusive: high + 0.05,
+      ));
+      barMin = low * 0.7;
+      barMax = high * 1.4;
+    }
+    return MetricInfo(
+      kind: MetricKind.weight,
+      title: localizations.weight,
+      description: localizations.metricInfoWeightDesc,
+      formattedValue: formattedValue,
+      icon: Icons.scale,
+      current: current,
+      bands: bands,
+      barMin: barMin,
+      barMax: barMax,
+    );
+  }
+
+  static MetricInfo _bmi(
+    AppLocalizations localizations,
+    double current,
+    String formattedValue,
+  ) => MetricInfo(
+    kind: MetricKind.bmi,
+    title: localizations.bmi,
+    description: localizations.metricInfoBmiDesc,
+    formattedValue: formattedValue,
+    icon: Icons.monitor_heart_outlined,
+    current: current,
+    barMin: 12,
+    barMax: 40,
+    bands: [
+      MetricRangeBand(
+        id: 'underweight',
+        label: localizations.metricRangeUnderweight,
+        tone: MetricBandTone.elevated,
+        interval: '< 18.5',
+        maxExclusive: 18.5,
+      ),
+      MetricRangeBand(
+        id: 'normal',
+        label: localizations.metricRangeNormal,
+        tone: MetricBandTone.typical,
+        interval: '18.5–24.9',
+        min: 18.5,
+        maxExclusive: 25,
+      ),
+      MetricRangeBand(
+        id: 'overweight',
+        label: localizations.metricRangeOverweight,
+        tone: MetricBandTone.elevated,
+        interval: '25–29.9',
+        min: 25,
+        maxExclusive: 30,
+      ),
+      MetricRangeBand(
+        id: 'obesity',
+        label: localizations.metricRangeObesity,
+        tone: MetricBandTone.high,
+        interval: '≥ 30',
+        min: 30,
+      ),
+    ],
+  );
+
+  static MetricInfo _bodyFat(
+    AppLocalizations localizations,
+    double current,
+    String formattedValue,
+    BodySex? sex,
+  ) {
+    final bands = sex == BodySex.male
+        ? [
+            MetricRangeBand(
+              id: 'low',
+              label: localizations.metricRangeLow,
+              tone: MetricBandTone.elevated,
+              interval: '< 10 %',
+              maxExclusive: 10,
+            ),
+            MetricRangeBand(
+              id: 'typical',
+              label: localizations.metricRangeTypical,
+              tone: MetricBandTone.typical,
+              interval: '10–20 %',
+              min: 10,
+              maxExclusive: 20.05,
+            ),
+            MetricRangeBand(
+              id: 'high',
+              label: localizations.metricRangeHigh,
+              tone: MetricBandTone.high,
+              interval: '> 20 %',
+              min: 20.05,
+            ),
+          ]
+        : sex == BodySex.female
+            ? [
+                MetricRangeBand(
+                  id: 'low',
+                  label: localizations.metricRangeLow,
+                  tone: MetricBandTone.elevated,
+                  interval: '< 18 %',
+                  maxExclusive: 18,
+                ),
+                MetricRangeBand(
+                  id: 'typical',
+                  label: localizations.metricRangeTypical,
+                  tone: MetricBandTone.typical,
+                  interval: '18–28 %',
+                  min: 18,
+                  maxExclusive: 28.05,
+                ),
+                MetricRangeBand(
+                  id: 'high',
+                  label: localizations.metricRangeHigh,
+                  tone: MetricBandTone.high,
+                  interval: '> 28 %',
+                  min: 28.05,
+                ),
+              ]
+            : [
+                MetricRangeBand(
+                  id: 'low',
+                  label: localizations.metricRangeLow,
+                  tone: MetricBandTone.elevated,
+                  interval: '< 10 %',
+                  maxExclusive: 10,
+                ),
+                MetricRangeBand(
+                  id: 'typicalMen',
+                  label: localizations.metricRangeTypicalMen,
+                  tone: MetricBandTone.typical,
+                  interval: '10–20 %',
+                  min: 10,
+                  maxExclusive: 20.05,
+                ),
+                MetricRangeBand(
+                  id: 'typicalWomen',
+                  label: localizations.metricRangeTypicalWomen,
+                  tone: MetricBandTone.typical,
+                  interval: '18–28 %',
+                  min: 18,
+                  maxExclusive: 28.05,
+                ),
+                MetricRangeBand(
+                  id: 'high',
+                  label: localizations.metricRangeHigh,
+                  tone: MetricBandTone.high,
+                  interval: '> 28 %',
+                  min: 28.05,
+                ),
+              ];
+    return MetricInfo(
+      kind: MetricKind.bodyFat,
+      title: localizations.bodyFat,
+      description: localizations.metricInfoFatDesc,
+      formattedValue: formattedValue,
+      icon: Icons.pie_chart_outline,
+      current: current,
+      bands: bands,
+      barMin: 2,
+      barMax: 45,
+    );
+  }
+
+  static MetricInfo _bone(
+    AppLocalizations localizations,
+    double currentKg,
+    String formattedValue,
+    double? weightKg,
+  ) {
+    final percent = weightKg != null && weightKg > 0
+        ? currentKg / weightKg * 100
+        : currentKg;
+    return MetricInfo(
+      kind: MetricKind.bone,
+      title: localizations.boneMass,
+      description: localizations.metricInfoBoneDesc,
+      formattedValue: formattedValue,
+      icon: Icons.accessibility,
+      current: percent,
+      barMin: 1,
+      barMax: 8,
+      bands: [
+        MetricRangeBand(
+          id: 'typical',
+          label: localizations.metricRangeTypical,
+          tone: MetricBandTone.typical,
+          interval: '2.5–5 %',
+          min: 2.5,
+          maxExclusive: 5.05,
+        ),
+      ],
+    );
+  }
+
+  static MetricInfo _water(
+    AppLocalizations localizations,
+    double current,
+    String formattedValue,
+    BodySex? sex,
+  ) {
+    final bands = sex == BodySex.male
+        ? [
+            MetricRangeBand(
+              id: 'low',
+              label: localizations.metricRangeLow,
+              tone: MetricBandTone.elevated,
+              interval: '< 50 %',
+              maxExclusive: 50,
+            ),
+            MetricRangeBand(
+              id: 'typical',
+              label: localizations.metricRangeTypical,
+              tone: MetricBandTone.typical,
+              interval: '50–65 %',
+              min: 50,
+              maxExclusive: 65.05,
+            ),
+            MetricRangeBand(
+              id: 'high',
+              label: localizations.metricRangeHigh,
+              tone: MetricBandTone.elevated,
+              interval: '> 65 %',
+              min: 65.05,
+            ),
+          ]
+        : sex == BodySex.female
+            ? [
+                MetricRangeBand(
+                  id: 'low',
+                  label: localizations.metricRangeLow,
+                  tone: MetricBandTone.elevated,
+                  interval: '< 45 %',
+                  maxExclusive: 45,
+                ),
+                MetricRangeBand(
+                  id: 'typical',
+                  label: localizations.metricRangeTypical,
+                  tone: MetricBandTone.typical,
+                  interval: '45–60 %',
+                  min: 45,
+                  maxExclusive: 60.05,
+                ),
+                MetricRangeBand(
+                  id: 'high',
+                  label: localizations.metricRangeHigh,
+                  tone: MetricBandTone.elevated,
+                  interval: '> 60 %',
+                  min: 60.05,
+                ),
+              ]
+            : [
+                MetricRangeBand(
+                  id: 'typicalMen',
+                  label: localizations.metricRangeTypicalMen,
+                  tone: MetricBandTone.typical,
+                  interval: '50–65 %',
+                  min: 50,
+                  maxExclusive: 65.05,
+                ),
+                MetricRangeBand(
+                  id: 'typicalWomen',
+                  label: localizations.metricRangeTypicalWomen,
+                  tone: MetricBandTone.typical,
+                  interval: '45–60 %',
+                  min: 45,
+                  maxExclusive: 60.05,
+                ),
+              ];
+    return MetricInfo(
+      kind: MetricKind.water,
+      title: localizations.bodyWater,
+      description: localizations.metricInfoWaterDesc,
+      formattedValue: formattedValue,
+      icon: Icons.water_drop_outlined,
+      current: current,
+      bands: bands,
+      barMin: 30,
+      barMax: 80,
+    );
+  }
+
+  static MetricInfo _sys(
+    AppLocalizations localizations,
+    double current,
+    String formattedValue,
+    PressureUnit unit,
+    int sysWarn,
+  ) {
+    final n120 = _pressure(120, unit);
+    final n130 = _pressure(130, unit);
+    final digits = unit == PressureUnit.kPa ? 1 : 0;
+    final suffix = unit == PressureUnit.kPa ? ' kPa' : '';
+    return MetricInfo(
+      kind: MetricKind.sys,
+      title: localizations.sysLong,
+      description: localizations.metricInfoSysDesc,
+      formattedValue: formattedValue,
+      icon: Icons.favorite_outline,
+      current: current,
+      barMin: _pressure(80, unit),
+      barMax: _pressure(180, unit),
+      warnLabel: localizations.metricWarnAt(_format(_pressure(sysWarn, unit), digits) + suffix),
+      bands: [
+        MetricRangeBand(
+          id: 'normal',
+          label: localizations.metricRangeNormal,
+          tone: MetricBandTone.typical,
+          interval: '< ${_format(n120, digits)}$suffix',
+          maxExclusive: n120,
+        ),
+        MetricRangeBand(
+          id: 'elevated',
+          label: localizations.metricRangeElevated,
+          tone: MetricBandTone.elevated,
+          interval: '${_format(n120, digits)}–${_format(_pressure(129, unit), digits)}$suffix',
+          min: n120,
+          maxExclusive: n130,
+        ),
+        MetricRangeBand(
+          id: 'high',
+          label: localizations.metricRangeHigh,
+          tone: MetricBandTone.high,
+          interval: '≥ ${_format(n130, digits)}$suffix',
+          min: n130,
+        ),
+      ],
+    );
+  }
+
+  static MetricInfo _dia(
+    AppLocalizations localizations,
+    double current,
+    String formattedValue,
+    PressureUnit unit,
+    int diaWarn,
+  ) {
+    final n80 = _pressure(80, unit);
+    final digits = unit == PressureUnit.kPa ? 1 : 0;
+    final suffix = unit == PressureUnit.kPa ? ' kPa' : '';
+    return MetricInfo(
+      kind: MetricKind.dia,
+      title: localizations.diaLong,
+      description: localizations.metricInfoDiaDesc,
+      formattedValue: formattedValue,
+      icon: Icons.favorite_outline,
+      current: current,
+      barMin: _pressure(40, unit),
+      barMax: _pressure(120, unit),
+      warnLabel: localizations.metricWarnAt(
+        '${_format(_pressure(diaWarn, unit), digits)}$suffix',
+      ),
+      bands: [
+        MetricRangeBand(
+          id: 'normal',
+          label: localizations.metricRangeNormal,
+          tone: MetricBandTone.typical,
+          interval: '< ${_format(n80, digits)}$suffix',
+          maxExclusive: n80,
+        ),
+        MetricRangeBand(
+          id: 'high',
+          label: localizations.metricRangeHigh,
+          tone: MetricBandTone.high,
+          interval: '≥ ${_format(n80, digits)}$suffix',
+          min: n80,
+        ),
+      ],
+    );
+  }
+
+  static MetricInfo _pulse(
+    AppLocalizations localizations,
+    double current,
+    String formattedValue,
+  ) => MetricInfo(
+    kind: MetricKind.pulse,
+    title: localizations.pulLong,
+    description: localizations.metricInfoPulDesc,
+    formattedValue: formattedValue,
+    icon: Icons.monitor_heart_outlined,
+    current: current,
+    barMin: 40,
+    barMax: 140,
+    bands: [
+      MetricRangeBand(
+        id: 'low',
+        label: localizations.metricRangeLow,
+        tone: MetricBandTone.elevated,
+        interval: '< 60',
+        maxExclusive: 60,
+      ),
+      MetricRangeBand(
+        id: 'typical',
+        label: localizations.metricRangeTypical,
+        tone: MetricBandTone.typical,
+        interval: '60–100',
+        min: 60,
+        maxExclusive: 100.05,
+      ),
+      MetricRangeBand(
+        id: 'high',
+        label: localizations.metricRangeHigh,
+        tone: MetricBandTone.elevated,
+        interval: '> 100',
+        min: 100.05,
+      ),
+    ],
+  );
+
+  static double _pressure(int mmHg, PressureUnit unit) => switch (unit) {
+    PressureUnit.mmHg => mmHg.toDouble(),
+    PressureUnit.kPa => Pressure.mmHg(mmHg).kPa,
+  };
+
+  static String _format(double value, [int digits = 1]) {
+    final text = value.toStringAsFixed(digits);
+    if (!text.contains('.')) return text;
+    var trimmed = text;
+    while (trimmed.endsWith('0')) {
+      trimmed = trimmed.substring(0, trimmed.length - 1);
+    }
+    if (trimmed.endsWith('.')) {
+      trimmed = trimmed.substring(0, trimmed.length - 1);
+    }
+    return trimmed;
+  }
+}
+
+/// Color for [tone] on the current theme.
+Color metricBandColor(MetricBandTone tone) => switch (tone) {
+  MetricBandTone.typical => Colors.green,
+  MetricBandTone.elevated => Colors.amber.shade700,
+  MetricBandTone.high => Colors.red,
+};

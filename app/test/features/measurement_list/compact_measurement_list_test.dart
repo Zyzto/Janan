@@ -1,4 +1,5 @@
 import 'package:blood_pressure_app/features/measurement_list/compact_measurement_list.dart';
+import 'package:blood_pressure_app/features/measurement_list/measurement_detail_screen.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,26 +34,22 @@ void main() {
     expect(find.text(localizations.notes), findsOneWidget);
 
     expect(find.text(localizations.errNoData), findsNothing);
-    expect(find.byType(Dismissible), findsOneWidget);
+    expect(find.byType(Dismissible), findsNothing);
     expect(find.text('123'), findsOneWidget);
     expect(find.text('45'), findsOneWidget);
     expect(find.text('67'), findsOneWidget);
     expect(find.text('testnote'), findsOneWidget);
   });
 
-  // TODO: test delete once storage logic is mockable (extract add and delete to
-  // object in context)
-  /*testWidgets('initializes deletion when swiping from right to left', (WidgetTester tester) async {
-    await tester.pumpWidget(materialApp(CompactMeasurementList(data: [
+  testWidgets('opens details when a row is tapped', (WidgetTester tester) async {
+    await tester.pumpWidget(appBase(CompactMeasurementList(data: [
       mockEntry(sys: 123, dia: 45, pul: 67, note: 'testnote'),
     ])));
-
-    expect(find.byType(AddEntryDialog), findsNothing);
-    expect(find.byIcon(Icons.delete), findsNothing);
-
-    await tester.drag(find.text('45'), const Offset(-500.0, 0));
     await tester.pumpAndSettle();
-    expect(find.text('Confirm deletion'), findsOneWidget);
-  });*/
-  // TODO: opens edit when swiping from left to right
+
+    await tester.tap(find.text('123'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MeasurementDetailScreen), findsOneWidget);
+  });
 }

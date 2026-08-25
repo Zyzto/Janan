@@ -351,6 +351,7 @@
   },
   "connectingToMeter": "Connecting to meter",
   "readingMeasurement": "Reading measurement…",
+  "orEnterManually": "Or enter manually",
   "lookingForDevice": "Looking for {name}…",
   "@lookingForDevice": {
     "placeholders": {
@@ -411,10 +412,8 @@
   "errFeatureNotSupported": "This feature is not available on this platform.",
   "invalidZip": "Invalid zip file.",
   "errCantCreateArchive": "Can''t create archive. Please report the bug if possible.",
-  "orEnterManually": "Or enter manually",
   "activateWeightFeatures": "Activate weight related features",
   "weight": "Weight",
-  "impedance": "Impedance",
   "enterWeight": "Enter weight",
   "selectMeasurementTitle": "Select the measurement to use",
   "measurementIndex": "Measurement #{number}",
@@ -496,6 +495,67 @@
   "@openSettings": {},
   "titleAlreadyExists": "This title already exists",
   "@titleAlreadyExists": {},
+  "bodyProfile": "Body profile",
+  "bodyProfileIncomplete": "Add height, birth year, and sex to estimate body composition",
+  "bodyHeightCm": "Height (cm)",
+  "birthYear": "Birth year",
+  "bodySex": "Sex",
+  "bodySexMale": "Male",
+  "bodySexFemale": "Female",
+  "athleteMode": "Athlete mode",
+  "athleteModeDesc": "Use Eufy athlete coefficients for higher muscle mass",
+  "bodyFat": "Body fat",
+  "muscleMass": "Muscle",
+  "boneMass": "Bone",
+  "bodyWater": "Water",
+  "leanBodyMass": "Lean body mass",
+  "bmr": "BMR",
+  "bmi": "BMI",
+  "comparedToPrevious": "Compared to previous",
+  "noChange": "No change",
+  "metricRangeUnderweight": "Underweight",
+  "metricRangeNormal": "Normal",
+  "metricRangeOverweight": "Overweight",
+  "metricRangeObesity": "Obesity",
+  "metricRangeElevated": "Elevated",
+  "metricRangeHigh": "High",
+  "metricRangeLow": "Low",
+  "metricRangeTypical": "Typical",
+  "metricRangeTypicalMen": "Typical (men)",
+  "metricRangeTypicalWomen": "Typical (women)",
+  "metricHigherIsBetter": "Generally higher is better",
+  "metricHealthyWeight": "Healthy weight",
+  "metricWarnAt": "Warn at {value}",
+  "@metricWarnAt": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "metricInfoWeightDesc": "The scale reading. A healthy range depends on height.",
+  "metricInfoBmiDesc": "Body mass index from weight and height. It is a screening number, not a diagnosis.",
+  "metricInfoFatDesc": "Estimated fat percentage from foot-to-foot impedance. Typical ranges differ by sex.",
+  "metricInfoMuscleDesc": "Estimated muscle mass from impedance. Higher values are generally better.",
+  "metricInfoBoneDesc": "Estimated bone mineral mass. In adults this is usually about 2.5–5% of body weight.",
+  "metricInfoWaterDesc": "Estimated body water. Typical ranges differ by sex.",
+  "metricInfoLbmDesc": "Lean body mass is weight minus estimated fat.",
+  "metricInfoBmrDesc": "Estimated calories used at rest (Mifflin–St Jeor). There is no single healthy cutoff.",
+  "metricInfoSysDesc": "The higher number in a blood pressure reading. It is the pressure when the heart contracts.",
+  "metricInfoDiaDesc": "The lower number in a blood pressure reading. It is the pressure when the heart rests.",
+  "metricInfoPulDesc": "Resting heart rate in beats per minute.",
+  "bodyCompositionEstimated": "Estimated from impedance. Values may differ from the Eufy app.",
+  "bodyCompositionSubtitle": "{fat}% fat · {muscle} kg muscle",
+  "@bodyCompositionSubtitle": {
+    "placeholders": {
+      "fat": {
+        "type": "String"
+      },
+      "muscle": {
+        "type": "String"
+      }
+    }
+  },
   "exportImportDocumentationTooltip": "How to use export/import",
   "exportImportDocumentation": "## Export / import basics\n\n- Use database exports, if you just want to transfer the data or know your way around sqlite.\n- Choose CSV for spreadsheet workflows and for importing data back into the app.\n- Keep the headline enabled and include a time column so the import can be restored reliably.\n- Use the field-format dialog to add custom columns for values such as systolic, diastolic, pulse, notes, and medicine intakes.\n\n## CSV import in LibreOffice and similar tools\n\n- Export as CSV and keep the headline enabled.\n- Use the default delimiter and text delimiter for standard CSV files.\n- Open the file in LibreOffice, Excel, or similar apps and make sure the time column is recognized as a date/time value.\n- If you want to re-import the file later, keep the same CSV settings and include a valid time column.\n\n## Color columns\n\n- The plain ''color'' column exports the note color as a simple value.\n- The legacy ''needlePin'' column stores a JSON payload for compatibility with older workflows.\n- Use the plain ''color'' column when you want a straightforward spreadsheet-friendly export.\n\n## Example workflow\n\n1. Enter a measurement and any notes.\n2. Open Export / Import and switch to CSV.\n3. Add a custom field or time column if you need one.\n4. Export the data and open it in LibreOffice or another spreadsheet app.\n5. Re-import the same file later when you want to restore or review the data."
 }

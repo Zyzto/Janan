@@ -6,12 +6,16 @@ import 'package:blood_pressure_app/model/bluetooth_input_mode.dart';
 import 'package:blood_pressure_app/model/bluetooth_measurement_import_mode.dart';
 import 'package:blood_pressure_app/model/horizontal_graph_line.dart';
 import 'package:blood_pressure_app/model/known_ble_device.dart';
+import 'package:blood_pressure_app/model/body_sex.dart';
 import 'package:blood_pressure_app/model/storage/types/bluetooth_input_mode_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/bluetooth_measurement_import_mode_setting.dart';
+import 'package:blood_pressure_app/model/storage/types/body_sex_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/color_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/horizontal_graph_line_list_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/known_ble_device_list_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/locale_setting.dart';
+import 'package:blood_pressure_app/model/storage/types/nullable_double_setting.dart';
+import 'package:blood_pressure_app/model/storage/types/nullable_int_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/pressure_unit_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/theme_mode_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/weight_unit_setting.dart';
@@ -143,6 +147,20 @@ class _SettingsSpec extends ChangeNotifier {
   final Setting<WeightUnit> weightUnit = WeightUnitSetting(
     initialValue: WeightUnit.kg,
   );
+
+  /// Height in centimeters used for body-composition estimates.
+  final Setting<double?> bodyHeightCm = NullableDoubleSetting(
+    initialValue: null,
+  );
+
+  /// Calendar year of birth used to derive age for body composition.
+  final Setting<int?> birthYear = NullableIntSetting(initialValue: null);
+
+  /// Sex used for body-composition estimates.
+  final Setting<BodySex?> bodySex = BodySexSetting(initialValue: null);
+
+  /// Whether to use Eufy's athlete coefficients.
+  final athleteMode = Setting<bool>(initialValue: false);
 
   /// Whether to autofill the time the bluetooth device reports.
   ///

@@ -1,4 +1,6 @@
+import 'package:blood_pressure_app/features/bluetooth/logic/eufy_body_composition.dart';
 import 'package:blood_pressure_app/features/settings/bluetooth_devices_screen.dart';
+import 'package:blood_pressure_app/features/settings/body_profile_screen.dart';
 import 'package:blood_pressure_app/features/settings/medicine_manager_screen.dart';
 import 'package:blood_pressure_app/features/settings/tiles/ble_input_options_tile.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
@@ -24,6 +26,20 @@ class FeaturesScreen extends StatelessWidget {
             secondary: const Icon(Icons.scale),
             onChanged: (value) {
               settings.weightInput = value;
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.accessibility_new),
+            title: Text(localizations.bodyProfile),
+            subtitle: Text(
+              settings.hasBodyProfile
+                  ? '${settings.bodyHeightCm!.round()} cm · ${settings.birthYear}'
+                  : localizations.bodyProfileIncomplete,
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute<void>(builder:
+                  (context) => const BodyProfileScreen()));
             },
           ),
           ListTile(

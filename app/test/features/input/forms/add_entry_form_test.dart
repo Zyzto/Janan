@@ -302,6 +302,26 @@ void main() {
         .having((e) => e.note, 'note', value.note));
   });
 
+  testWidgets('keeps impedance when saving a filled scale reading', (tester) async {
+    final key = GlobalKey<AddEntryFormState>();
+    final time = DateTime(2026, 8, 24, 8, 9);
+    await tester.pumpWidget(appBase(
+      AddEntryForm(key: key),
+      settings: Settings(weightInput: true),
+    ));
+    await tester.pumpAndSettle();
+    key.currentState!.onExternalWeight(BodyweightRecord(
+      time: time,
+      weight: Weight.kg(102.3),
+      impedanceOhm: 500,
+    ));
+    await tester.pumpAndSettle();
+
+    final saved = key.currentState!.save();
+    expect(saved?.weight?.weight.kg, closeTo(102.3, 0.001));
+    expect(saved?.weight?.impedanceOhm, closeTo(500, 0.001));
+  });
+
   testWidgets("doesn't save empty forms", (tester) async {
     final key = GlobalKey<AddEntryFormState>();
     await tester.pumpWidget(appBase(AddEntryForm(key: key)));
