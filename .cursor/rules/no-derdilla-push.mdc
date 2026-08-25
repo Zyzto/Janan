@@ -1,0 +1,26 @@
+---
+description: Never push, PR, or suggest sending work to derdilla. This is a Zyzto fork.
+alwaysApply: true
+---
+
+# Do not send work to derdilla
+
+This repo is [Zyzto/blood-pressure-monitor-fl](https://github.com/Zyzto/blood-pressure-monitor-fl), a fork of [derdilla/blood-pressure-monitor-fl](https://github.com/derdilla/blood-pressure-monitor-fl).
+
+Upstream does not accept AI-written contributions. Do not treat derdilla as a place to land this work.
+
+- Never `git push` to `derdilla`, `upstream`, or any remote whose URL is `derdilla/blood-pressure-monitor-fl`.
+- Never open a PR, issue, or comment on derdilla unless the user explicitly names that repo and asks for that action.
+- Never suggest pushing there, filing there, "contributing back", or syncing a stack onto derdilla.
+- `origin` is the fork. Push and open PRs only on `Zyzto/blood-pressure-monitor-fl`.
+
+```
+# BAD
+git push upstream HEAD
+gh pr create --repo derdilla/blood-pressure-monitor-fl
+"Want me to open this on derdilla?"
+
+# GOOD
+git push -u origin HEAD
+gh pr create --repo Zyzto/blood-pressure-monitor-fl
+```
