@@ -1,8 +1,8 @@
 name: blood_pressure_app
 description: Privacy focused, diary like app for storing blood pressure values.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-repository: https://github.com/derdilla/blood-pressure-monitor-fl
-issue_tracker: https://github.com/derdilla/blood-pressure-monitor-fl/issues
+repository: https://github.com/Zyzto/blood-pressure-monitor-fl
+issue_tracker: https://github.com/Zyzto/blood-pressure-monitor-fl/issues
 
 version: 1.8.15+57
 

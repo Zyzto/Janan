@@ -1,5 +1,7 @@
 # App files
 
+[Fork](../FORK.md). I use AI here.
+
 The app stores persistent data in the app storage. This document aims to provide an overview of the purpose and structure of the files stored.
 
 ## Current files

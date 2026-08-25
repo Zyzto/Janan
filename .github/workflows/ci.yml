@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  analyze-and-test:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Read Flutter version
+        id: flutter
+        run: echo "version=$(bash ./scripts/ci/flutter_version.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Disable analytics
+        run: flutter config --no-analytics --suppress-analytics
+
+      - name: Generate code
+        run: bash ./scripts/ci/codegen.sh
+
+      - name: Reject unescaped apostrophes in arb files
+        run: |
+          if grep -E "[^'\"]'[^'\"]" app/lib/l10n/*.arb; then
+            echo "Unescaped apostrophe in an arb file" >&2
+            exit 1
+          fi
+
+      - name: Analyze
+        run: flutter analyze
+        working-directory: app
+
+      - name: Test
+        run: flutter test
+        working-directory: app
+
+      - name: Golden tests
+        run: flutter test --tags gold --run-skipped
+        working-directory: app
+
+  packages:
+    name: Package tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Read Flutter version
+        id: flutter
+        run: echo "version=$(bash ./scripts/ci/flutter_version.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Disable analytics
+        run: flutter config --no-analytics --suppress-analytics
+
+      - name: Install SQLite
+        run: sudo apt-get update && sudo apt-get -y install libsqlite3-dev
+
+      - name: Generate code
+        run: bash ./scripts/ci/codegen.sh
+
+      - name: Test health_data_store
+        run: dart test
+        working-directory: health_data_store
+
+      - name: Test settings_annotation
+        run: flutter test
+        working-directory: settings_annotation
+
+      - name: Analyze settings_annotation
+        run: dart analyze
+        working-directory: settings_annotation
+
+  debug-apk:
+    name: Debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Read Flutter version
+        id: flutter
+        run: echo "version=$(bash ./scripts/ci/flutter_version.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          build-root-directory: app/android
+          add-job-summary: on-failure
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Disable analytics
+        run: flutter config --no-analytics --suppress-analytics
+
+      - name: Generate code
+        run: bash ./scripts/ci/codegen.sh
+
+      - name: Build debug APK
+        run: flutter build apk --debug --flavor fdroid
+        working-directory: app
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: blood-pressure-monitor-debug-apk
+          path: app/build/app/outputs/flutter-apk/app-fdroid-debug.apk
+          if-no-files-found: error

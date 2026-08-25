@@ -1,5 +1,7 @@
 Builds settings classes from specification. This helps reduce errors introduced through manually repeated code.
 
+Package in the [Zyzto fork](../FORK.md). I use AI on this tree.
+
 ## Usage
 
 ```dart

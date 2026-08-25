@@ -1,52 +1,38 @@
 # Contributing
 
-This repository has become quite large, so contributions are greatly appreciated and can come in many forms.
+This is the [Zyzto fork](https://github.com/Zyzto/blood-pressure-monitor-fl) of [derdilla/blood-pressure-monitor-fl](https://github.com/derdilla/blood-pressure-monitor-fl). See [FORK.md](FORK.md).
 
-*Please note that when contributing you agree that your work is under the same license as the project.*
+I use AI coding agents on this tree. If that bothers you, use upstream instead.
 
-## Opening bugs and proposing features
+Work you send here is under the same license as the project.
 
-This is probably the easiest: Use the app and find out what's wrong and what can be improved. There is no such thing as a wrong issue. Just make sure there is no existing one about the exact same topic. If you are unsure about something just create a new issue, the worst thing to happen is that it gets closed.
+## Issues
 
-You can also look at issues that aren't reproducible and try to write instructions on how to cause them.
+Open them on this fork if they are about the extra BLE work or this build. Open them [upstream](https://github.com/derdilla/blood-pressure-monitor-fl/issues) if they are about the official app.
 
-## Improving texts and translating
+## Build
 
-Another easy way to help is to go through the texts (this one, store listings or the ones in the app) and fix grammar, punctuation, or other mistakes.
+Needs Flutter 3.47.0.
 
-The [Weblate](https://hosted.weblate.org/engage/blood-pressure-monitor-fl/) contributions are currently broken. If you are interested in fixing them, please reach out. For now, you can just open a Pull Request files in `/app/lib/l10n` or submit them through some other channel like E-Mail.
+1. [Install Flutter](https://docs.flutter.dev/get-started/install)
+2. `git clone https://github.com/Zyzto/blood-pressure-monitor-fl.git`
+3. `dart run build_runner build` in `health_data_store`
+4. `dart run build_runner build` in `app`
 
-## Coding
+Then:
 
-Since this is *FOSS*, you can compile the app yourself and adjust it for your own needs and give back those changes, so everyone can profit.
+- `flutter run --flavor github`
+- `flutter build apk --flavor github` or `--flavor fdroid`
 
-We try to keep the code as documented, simple and maintainable as possible, so you won't need to learn the entire codebase. Additional information about data formats and code style suggestions can be found in the [docs](https://github.com/derdilla/blood-pressure-monitor-fl/tree/main/docs) folder.
+CI, signing secrets, and Obtainium releases are in [docs/ci.md](docs/ci.md). I do not own Play or the upstream key.
 
-To build the app locally you have to:
-1. [set up](https://docs.flutter.dev/get-started/install) flutter
-2. `git clone https://github.com/derdilla/blood-pressure-monitor-fl.git`
-3. run `dart run build_runner build` in the `health_data_store` directory
-4. run `dart run build_runner build` in the `app` directory
 
-After this initial setup you can:
-- Test the app: `flutter run --flavor github` to run the app locally or on devices attached via ADB
-- Compile the app `flutter build apk --flavor github`
-  - For Android release builds (`--release`), you need to [configure a signing key](https://docs.flutter.dev/deployment/android#sign-the-app).
+After you change a `@GenerateSettings` file:
 
-Once you change a file with the `@GenerateSettings` annotation, rebuild the settings:
 `dart run build_runner build --build-filter="lib/model/storage/*.dart"`
 
-### Pull requests
+Data formats and style notes are in [docs](docs/). Those files started as upstream docs.
 
-If you can fix issues or implement features from the issues page feel free to make a PR on GitHub with your changes. While not a strict requirement, it is recommended to talk about it in an issue first.
+## Pull requests
 
-- If you have any questions on the codebase, just open a discussion
-- For [all the right reasons](https://en.wikipedia.org/wiki/Large_language_model#Societal_concerns) we don't accept AI (LLM) generated contributions
-
-### Platform-support
-
-I'm looking for people who want to bring this app to many more users on IOS or desktop. If you can test there or can publish apps just email me or open an issue, so we can sort out the details!
-
-## Donations
-
-If you sponsor [me](https://github.com/derdilla), I may be more motivated to work on this, seeing that people actually care enough to pay for it.
+PRs on this fork are fine. Say if a change was AI-assisted. I am not forwarding them to derdilla.

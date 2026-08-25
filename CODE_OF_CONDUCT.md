@@ -1,5 +1,7 @@
 # Code of conduct
 
+This file is kept from the original project. This tree is a [fork](FORK.md). I use AI here. For the official app, report conduct issues to [contact@derdilla.com](mailto:contact@derdilla.com).
+
 As a basis for working together every community member, sponsor, or maintainer has to agree to following these following basic principles in all interaction related to this project or its users.
 
 1. Respect each other as human beings
@@ -11,4 +13,4 @@ This code of conduct explicitly encourages taking controversial stands on techni
 
 Violating these basic rules, especially if done repeatedly or deliberately, _will_ result in exclusion from discussions and/or contributions.
 
-Anyone can privately raise concerns by sending an email to [contact@derdilla.com](mailto://contact@derdilla.com).
+Anyone can privately raise concerns about the original project by sending an email to [contact@derdilla.com](mailto:contact@derdilla.com).
