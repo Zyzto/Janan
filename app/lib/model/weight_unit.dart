@@ -39,4 +39,13 @@ enum WeightUnit {
     WeightUnit.lbs => w.kg / 2.2046226218488,
     WeightUnit.st => w.kg / 6.350,
   };
+
+  /// Format [w] in this unit, dropping trailing zeros.
+  String format(Weight w) {
+    String weightStr = extract(w).toStringAsFixed(2);
+    if (weightStr.endsWith('0')) weightStr = weightStr.substring(0, weightStr.length - 1);
+    if (weightStr.endsWith('0')) weightStr = weightStr.substring(0, weightStr.length - 1);
+    if (weightStr.endsWith('.')) weightStr = weightStr.substring(0, weightStr.length - 1);
+    return '$weightStr $name';
+  }
 }

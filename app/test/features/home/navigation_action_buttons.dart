@@ -8,9 +8,9 @@ void main() {
   testWidgets('shows all buttons', (tester) async {
     await tester.pumpWidget(materialApp(const NavigationActionButtons()));
     
-    expect(find.byType(FloatingActionButton), findsNWidgets(3));
+    expect(find.byType(FloatingActionButton), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
-    expect(find.byIcon(Icons.settings), findsOneWidget);
-    expect(find.byIcon(Icons.insights), findsOneWidget);
+    expect(find.byIcon(Icons.settings), findsNothing);
+    expect(find.byIcon(Icons.insights), findsNothing);
   });
 }

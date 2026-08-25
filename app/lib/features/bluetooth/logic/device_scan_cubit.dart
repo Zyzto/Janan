@@ -4,11 +4,12 @@
 import 'dart:async';
 
 import 'package:blood_pressure_app/features/bluetooth/backend/bluetooth_backend.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/ble_device_filter.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/ble_read_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/bluetooth_cubit.dart';
 import 'package:blood_pressure_app/logging.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:blood_pressure_app/model/storage/settings.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,6 +28,7 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
   DeviceScanCubit({
     required BluetoothManager manager,
     required this.settings,
+    this.autoRead = true,
   }): super(DeviceListLoading()) {
     _manager = manager;
     _startScanning();
@@ -34,6 +36,9 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
 
   /// Storage for known devices.
   late final Settings settings;
+
+  /// When true, accepting a device starts a measurement read.
+  final bool autoRead;
 
   late final BluetoothManager _manager;
 
@@ -74,26 +79,33 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
       return;
     }
 
-    final preferred = devices.firstWhereOrNull((dev) =>
-      settings.knownBleDev.contains(dev.deviceId));
+    final knownHits = devices.where((dev) =>
+      settings.knownBleDev.any((known) => known.matches(dev.deviceId, dev.name))).toList();
 
-    if (preferred != null) {
-      final readCubit = BleReadCubit(
-        device: preferred.source.peripheral,
-        cm: preferred.manager,
-        deviceName: preferred.name,
-      );
-      emit(DeviceSelected(readCubit));
-      _stopScanning().ignore();
-      readCubit.takeMeasurement()
-          .onError((e, stack) => logger.severe('takeMeasurement failed', e, stack))
-          .ignore();
-    } else if (devices.isEmpty) {
+    if (knownHits.length == 1 && autoRead) {
+      unawaited(_startRead(knownHits.first));
+      return;
+    }
+
+    final likely = <BluetoothDevice>[];
+    final other = <BluetoothDevice>[];
+    for (final device in devices) {
+      if (isLikelySupportedHealthBluetoothDevice(
+        device,
+        knownDevices: settings.knownBleDev,
+      )) {
+        likely.add(device);
+      } else {
+        other.add(device);
+      }
+    }
+
+    if (likely.isEmpty && other.isEmpty) {
       emit(DeviceListLoading());
-    } else if (devices.length == 1) {
-      emit(SingleDeviceAvailable(devices.first));
+    } else if (likely.length == 1 && other.isEmpty) {
+      emit(SingleDeviceAvailable(likely.first));
     } else {
-      emit(DeviceListAvailable(devices));
+      emit(DeviceListAvailable(likely, otherDevices: other));
     }
   }
 
@@ -111,19 +123,51 @@ class DeviceScanCubit extends Cubit<DeviceScanState> with TypeLogger {
       return;
     }
 
-    final cubit = BleReadCubit(
-        device: device.source.peripheral,
-        cm: device.manager,
-        deviceName: device.name,
-    );
-    emit(DeviceSelected(cubit));
-    cubit.takeMeasurement()
-        .onError((e, stack) => logger.severe('takeMeasurement failed', e, stack))
-        .ignore();
+    _rememberDevice(device);
+    if (autoRead) {
+      await _startRead(device);
+    }
+  }
 
-    assert(!_manager.discovery.isDiscovering);
-    final List<String> list = settings.knownBleDev.toList();
-    list.add(device.deviceId);
+  void _rememberDevice(BluetoothDevice device) {
+    final list = settings.knownBleDev.toList();
+    if (list.any((known) => known.matches(device.deviceId, device.name))) {
+      settings.knownBleDev = [
+        for (final known in list)
+          if (known.matches(device.deviceId, device.name))
+            known.copyWith(id: device.deviceId, name: device.name)
+          else
+            known,
+      ];
+      return;
+    }
+    list.add(KnownBleDevice(id: device.deviceId, name: device.name));
     settings.knownBleDev = list;
+  }
+
+  /// Stop discovering without closing the cubit, so a later [resumeScan] can
+  /// look for extra saved meters after the first GATT connect has started.
+  Future<void> pauseScan() => _stopScanning();
+
+  /// Start discovering again after [pauseScan].
+  Future<void> resumeScan() async {
+    if (isClosed || state is DeviceSelected) return;
+    await _startScanning();
+  }
+
+  Future<void> _startRead(BluetoothDevice device) async {
+    await _stopScanning();
+    if (isClosed) return;
+    final readCubit = BleReadCubit(
+      device: device.source.peripheral,
+      cm: device.manager,
+      deviceName: device.name,
+    );
+    emit(DeviceSelected(readCubit));
+    unawaited(
+      readCubit.takeMeasurement().onError(
+        (e, stack) => logger.severe('takeMeasurement failed', e, stack),
+      ),
+    );
   }
 }

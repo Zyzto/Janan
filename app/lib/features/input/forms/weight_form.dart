@@ -20,13 +20,15 @@ class WeightFormState extends FormStateBase<Weight, WeightForm> {
   final TextEditingController _controller = TextEditingController();
 
   String? _error;
+  String _initialText = '';
 
   @override
   void initState() {
     super.initState();
     if (widget.initialValue != null) {
       final w = context.read<Settings>().weightUnit.extract(widget.initialValue!);
-      _controller.text = w.toString();
+      _initialText = w.toString();
+      _controller.text = _initialText;
     }
   }
 
@@ -59,16 +61,21 @@ class WeightFormState extends FormStateBase<Weight, WeightForm> {
 
   @override
   void fillForm(Weight? value) {
-    if (value == null) {
-      _controller.text = '';
-    } else {
-      final w = context.read<Settings>().weightUnit.extract(widget.initialValue!);
-      _controller.text = w.toString();
-    }
+    setState(() {
+      if (value == null) {
+        _controller.text = '';
+      } else {
+        final w = context.read<Settings>().weightUnit.extract(value);
+        _controller.text = w.toString();
+      }
+    });
   }
 
   @override
   bool get isEmpty => _controller.text.isEmpty;
+
+  @override
+  bool get isDirty => _controller.text != _initialText;
 
   @override
   Widget build(BuildContext context) => TextField(

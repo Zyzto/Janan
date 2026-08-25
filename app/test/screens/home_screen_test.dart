@@ -21,6 +21,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationActionButtons), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
+    expect(find.text('Blood Pressure App'), findsOneWidget);
+    expect(find.byIcon(Icons.settings), findsOneWidget);
+    expect(find.byIcon(Icons.insights), findsOneWidget);
+    expect(
+      tester.getCenter(find.byIcon(Icons.settings)).dx,
+      lessThan(tester.getCenter(find.text('Blood Pressure App')).dx),
+    );
+    expect(
+      tester.getCenter(find.byIcon(Icons.insights)).dx,
+      lessThan(tester.getCenter(find.text('Blood Pressure App')).dx),
+    );
 
     expect(find.byType(BloodPressureValueGraph), findsOneWidget);
     expect(find.byType(IntervalPicker), findsOneWidget);
@@ -86,6 +98,6 @@ void main() {
     await tester.pumpWidget(await appBaseWithData(const AppHome()));
     await tester.pumpAndSettle();
 
-    expect(find.byType(SafeArea), findsOneWidget);
+    expect(find.byType(SafeArea), findsAtLeast(1));
   });
 }

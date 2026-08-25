@@ -108,6 +108,14 @@ class AddEntryFormState extends FormStateBase<CombinedEntry, AddEntryForm>
   );
 
   @override
+  bool get isDirty =>
+      (_timeForm.currentState?.isDirty ?? false)
+      || (_bpForm.currentState?.isDirty ?? false)
+      || (_weightForm.currentState?.isDirty ?? false)
+      || (_intakeForm.currentState?.isDirty ?? false)
+      || (_noteForm.currentState?.isDirty ?? false);
+
+  @override
   bool validate() {
     final settings = context.read<Settings>();
 
@@ -176,7 +184,14 @@ class AddEntryFormState extends FormStateBase<CombinedEntry, AddEntryForm>
     }
     final weightFormValue = _weightForm.currentState?.save();
     if (weightFormValue != null) {
-      weight = BodyweightRecord(time: time, weight: weightFormValue);
+      final previous = _lastSavedWeight;
+      final sameKg = previous != null
+          && (previous.weight.kg * 100).round() == (weightFormValue.kg * 100).round();
+      weight = BodyweightRecord(
+        time: time,
+        weight: weightFormValue,
+        impedanceOhm: sameKg ? previous.impedanceOhm : null,
+      );
     }
     final intakeFormValue = _intakeForm.currentState?.save();
     if (intakeFormValue != null) {
@@ -277,6 +292,25 @@ class AddEntryFormState extends FormStateBase<CombinedEntry, AddEntryForm>
       time: time,
       record: record.copyWith(time: time),
     ));
+  }
+
+  /// Prefill the weight tab from a scale reading, keeping impedance on save.
+  void onExternalWeight(BodyweightRecord record) {
+    final settings = context.read<Settings>();
+    settings.weightInput = true;
+    final time = settings.trustBLETime
+        ? record.time
+        : _timeForm.currentState?.save() ?? DateTime.now();
+    final next = CombinedEntry(
+      time: time,
+      weight: record.copyWith(time: time),
+    );
+    _lastSavedWeight = next.weight;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      fillForm(next);
+      _controller.animateTo(context.read<MedCache>().isEmpty ? 1 : 2);
+    });
   }
 
   @override

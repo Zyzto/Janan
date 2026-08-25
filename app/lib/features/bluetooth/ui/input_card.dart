@@ -47,7 +47,8 @@ class InputCard extends StatelessWidget {
       left: 8.0,
       right: 8.0,
     ),
-    child: Center(
+    child: Align(
+      alignment: Alignment.topCenter,
       child: child,
     ),
   );
@@ -55,7 +56,7 @@ class InputCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     color: Theme.of(context).cardColor,
-    margin: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+    margin: const EdgeInsets.only(top: 0, bottom: 8.0),
     child: Stack(
       children: [
         _buildBody(),

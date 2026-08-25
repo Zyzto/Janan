@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:blood_pressure_app/data_util/consistent_future_builder.dart';
+import 'package:blood_pressure_app/features/bluetooth/ui/ble_launch_sync_host.dart';
 import 'package:blood_pressure_app/features/health_connect/bp_sync_model.dart';
 import 'package:blood_pressure_app/features/health_connect/health_connect_screen.dart';
 import 'package:blood_pressure_app/features/health_connect/sync_model.dart';
@@ -45,6 +46,8 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> with TypeLogger {
   Database? _entryDB;
+  final HomePresenceObserver _homePresence = HomePresenceObserver();
+  final GlobalKey _launchSyncHostKey = GlobalKey();
 
   /// The result of the first [_loadApp] call.
   ///
@@ -71,6 +74,7 @@ class _AppState extends State<App> with TypeLogger {
     _intervalStorageManager?.dispose();
     _exportColumnsManager?.dispose();
     _healthConnectSettings?.dispose();
+    _homePresence.dispose();
     super.dispose();
   }
 
@@ -143,7 +147,15 @@ class _AppState extends State<App> with TypeLogger {
         }
       }
 
-      _settings!.lastVersion = int.parse((await PackageInfo.fromPlatform()).buildNumber);
+      final buildNumber = int.parse((await PackageInfo.fromPlatform()).buildNumber);
+      if (_settings!.lastVersion <= 57
+          && _settings!.knownBleDev.isNotEmpty
+          && _settings!.bleInput != BluetoothInputMode.disabled) {
+        // Earlier builds persisted the old default (off). Turn it on once for
+        // people who already saved a meter.
+        _settings!.syncBluetoothOnLaunch = true;
+      }
+      _settings!.lastVersion = buildNumber < 58 ? 58 : buildNumber;
 
       // Reset the step size interval to current on startup
       _intervalStorageManager!.mainPage.setToMostRecentInterval();
@@ -300,6 +312,12 @@ class _AppState extends State<App> with TypeLogger {
       supportedLocales: AppLocalizations.supportedLocales,
       locale: settings.language,
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [_homePresence],
+      builder: (context, child) => BleLaunchSyncHost(
+        key: _launchSyncHostKey,
+        homePresence: _homePresence,
+        child: child ?? const SizedBox.shrink(),
+      ),
       initialRoute: initialRoute.path,
       routes: {
         AppRoute.home.path: (_) => const AppHome(),

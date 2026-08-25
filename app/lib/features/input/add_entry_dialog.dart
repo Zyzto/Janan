@@ -44,7 +44,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> with TypeLogger {
 
   Future<bool> shouldPop() async {
     if (context.read<Settings>().validateInputs
-        && !(formKey.currentState?.isEmpty ?? true)) {
+        && (formKey.currentState?.isDirty ?? false)) {
       final res = await showConfirmDeletionDialog(context,
           AppLocalizations.of(context)!.warnDiscardingData);
       return res;

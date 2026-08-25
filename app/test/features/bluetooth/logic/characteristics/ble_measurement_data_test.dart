@@ -56,6 +56,23 @@ void main() {
     expect(below?.status?.pulseRateInRange, false);
   });
 
+  test('decodes BM59 stored measurements without a hidden user id', () {
+    // Captured from a BM59 memory dump. Flags 22 advertise timestamp + pulse +
+    // status and no user id; the payload is 18 little-endian bytes.
+    final result = BleMeasurementData.decode(
+      Uint8List.fromList([22, 145, 0, 81, 0, 102, 0, 234, 7, 4, 5, 16, 19, 10, 80, 0, 0, 0]),
+      alwaysSendsUserId: true,
+    );
+
+    expect(result, isNotNull);
+    expect(result!.systolic, 145.0);
+    expect(result.diastolic, 81.0);
+    expect(result.meanArterialPressure, 102.0);
+    expect(result.pulse, 80.0);
+    expect(result.userID, null);
+    expect(result.timestamp, DateTime(2026, 4, 5, 16, 19, 10));
+  });
+
   test('decodes beurer sample data', () {
     // Recorded from a Beurer BM85.
     final result = BleMeasurementData.decode(Uint8List.fromList(

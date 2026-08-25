@@ -76,6 +76,14 @@ class MedicineIntakeFormState extends FormStateBase<(Medicine, Weight), Medicine
   bool get isEmpty => _leadingMed == null;
 
   @override
+  bool get isDirty {
+    final initial = widget.initialValue;
+    if (initial == null) return _leadingMed != null;
+    return _leadingMed != initial.$1
+        || _controller.text != initial.$2.mg.toString();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (_leadingMed != null) {
       return TextField(

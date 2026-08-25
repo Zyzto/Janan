@@ -43,6 +43,21 @@ void main() {
     expect(find.text('123.45'), findsOneWidget);
   });
 
+  testWidgets('fillForm uses the provided weight', (WidgetTester tester) async {
+    final key = GlobalKey<WeightFormState>();
+    await tester.pumpWidget(materialApp(WeightForm(
+      key: key,
+      initialValue: Settings().weightUnit.store(10),
+    )));
+    await tester.pumpAndSettle();
+    expect(find.text('10.0'), findsOneWidget);
+
+    key.currentState!.fillForm(Settings().weightUnit.store(77.7));
+    await tester.pump();
+    expect(find.text('77.7'), findsOneWidget);
+    expect(key.currentState!.isDirty, isTrue);
+  });
+
   testWidgets('saves only filled inputs', (WidgetTester tester) async {
     final key = GlobalKey<WeightFormState>();
     await tester.pumpWidget(materialApp(WeightForm(key: key)));

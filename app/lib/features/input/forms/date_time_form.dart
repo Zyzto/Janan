@@ -19,6 +19,7 @@ class DateTimeForm extends FormBase<DateTime> {
 /// State of a [DateTimeForm].
 class DateTimeFormState extends FormStateBase<DateTime, DateTimeForm> {
   late DateTime _time;
+  late DateTime _originalTime;
 
   String? _error;
 
@@ -26,6 +27,7 @@ class DateTimeFormState extends FormStateBase<DateTime, DateTimeForm> {
   void initState() {
     super.initState();
     _time = widget.initialValue ?? DateTime.now();
+    _originalTime = _time;
   }
 
   @override
@@ -110,4 +112,14 @@ class DateTimeFormState extends FormStateBase<DateTime, DateTimeForm> {
 
   @override
   bool get isEmpty => true;
+
+  @override
+  bool get isDirty => !_sameMinute(_time, _originalTime);
+
+  bool _sameMinute(DateTime a, DateTime b) =>
+      a.year == b.year
+      && a.month == b.month
+      && a.day == b.day
+      && a.hour == b.hour
+      && a.minute == b.minute;
 }

@@ -38,7 +38,9 @@ extension EntryUtils on BuildContext {
   }
 
   /// Delete record and note of an entry from the repositories.
-  Future<void> deleteEntry(CombinedEntry entry, [Health? health]) async {
+  ///
+  /// Returns whether the entry was removed.
+  Future<bool> deleteEntry(CombinedEntry entry, [Health? health]) async {
     try {
       final localizations = AppLocalizations.of(this)!;
       final settings = Provider.of<Settings>(this, listen: false);
@@ -88,9 +90,11 @@ extension EntryUtils on BuildContext {
             },
           ),
         ),);
+        return true;
       }
     } on ProviderNotFoundException {
       log.severe('[extension.EntryUtils] deleteEntry($entry) was called from a context without Provider.');
     }
+    return false;
   }
 }

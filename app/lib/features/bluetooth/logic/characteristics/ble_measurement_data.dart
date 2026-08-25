@@ -63,16 +63,21 @@ class BleMeasurementData {
     final bool isMMHG = !isBitIntByteSet(flagsByte, 0); // 0 => mmHg 1 =>kPA
     final bool timestampPresent = isBitIntByteSet(flagsByte, 1);
     final bool pulseRatePresent = isBitIntByteSet(flagsByte, 2);
-    // Some Beurer devices always send the user id, without setting the flag for it.
-    final bool userIdPresent = isBitIntByteSet(flagsByte, 3) || alwaysSendsUserId;
+    final bool userIdFromFlags = isBitIntByteSet(flagsByte, 3);
     final bool measurementStatusPresent = isBitIntByteSet(flagsByte, 4);
-
-    if (data.length < (7
+    final int expectedFromFlags = 7
       + (timestampPresent ? 7 : 0)
       + (pulseRatePresent ? 2 : 0)
-      + (userIdPresent ? 1 : 0)
-      + (measurementStatusPresent ? 2 : 0)
-    )) {
+      + (userIdFromFlags ? 1 : 0)
+      + (measurementStatusPresent ? 2 : 0);
+    // BM85 inserts a user id without setting the flag. BM59 sends the same
+    // flags without that extra byte, so only consume it when it is present.
+    final bool extraUserId = alwaysSendsUserId
+        && !userIdFromFlags
+        && data.length >= expectedFromFlags + 1;
+    final bool userIdPresent = userIdFromFlags || extraUserId;
+
+    if (data.length < expectedFromFlags) {
       log.warning("BleMeasurementData decodeMeasurement: Flags don't match, $data has less bytes than expected.");
       return null;
     }

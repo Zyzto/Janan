@@ -4,6 +4,7 @@ import 'package:blood_pressure_app/features/bluetooth/logic/bluetooth_cubit.dart
 import 'package:blood_pressure_app/features/input/forms/add_entry_form.dart';
 import 'package:blood_pressure_app/features/input/forms/form_base.dart';
 import 'package:blood_pressure_app/features/old_bluetooth/bluetooth_input.dart';
+import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:blood_pressure_app/logging.dart';
 import 'package:blood_pressure_app/model/bluetooth_input_mode.dart';
 import 'package:blood_pressure_app/model/combined_entry.dart';
@@ -101,6 +102,21 @@ class AddMultipleEntriesFormState
             || (_singleEntryForm.currentState?.isEmpty ?? true);
 
   @override
+  bool get isDirty {
+    if (_multipleValues != null && _multipleValues!.length > 1) {
+      final initial = widget.initialValue;
+      if (initial == null || initial.length != _multipleValues!.length) {
+        return true;
+      }
+      for (var i = 0; i < initial.length; i++) {
+        if (initial[i] != _multipleValues![i]) return true;
+      }
+      return false;
+    }
+    return _singleEntryForm.currentState?.isDirty ?? false;
+  }
+
+  @override
   bool isEmptyInputFocused() => false;
 
   @override
@@ -143,6 +159,14 @@ class AddMultipleEntriesFormState
     }
   }
 
+  void _onExternalWeight(BodyweightRecord record) {
+    if (_singleEntryForm.currentState case final AddEntryFormState state) {
+      state.onExternalWeight(record);
+    } else {
+      logger.warning("Received external weight but couldn't fill form.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_multipleValues case final List<CombinedEntry> values) {
@@ -170,13 +194,14 @@ class AddMultipleEntriesFormState
         ),
       );
     }
+    final bleInput = context.select((Settings s) => s.bleInput);
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
       children: [
         if (widget.mockBleInput != null)
           widget.mockBleInput!.call(_onExternalMeasurements),
-        (() => switch (context.select((Settings s) => s.bleInput)) {
-          BluetoothInputMode.disabled => SizedBox.shrink(),
+        switch (bleInput) {
+          BluetoothInputMode.disabled => const SizedBox.shrink(),
           BluetoothInputMode.oldBluetoothInput => OldBluetoothInput(
             onMeasurement: _onExternalMeasurement,
           ),
@@ -184,9 +209,12 @@ class AddMultipleEntriesFormState
             manager: BluetoothManager.create(),
             onMeasurement: _onExternalMeasurement,
             onAllMeasurements: _onExternalMeasurements,
+            onWeight: _onExternalWeight,
             bluetoothCubit: widget.bluetoothCubit,
           ),
-        })(),
+        },
+        if (widget.mockBleInput != null || bleInput != BluetoothInputMode.disabled)
+          const _OrEnterManually(),
         AddEntryForm(
           key: _singleEntryForm,
           initialValue: _singleEntry,
@@ -195,4 +223,31 @@ class AddMultipleEntriesFormState
     );
   }
 
+}
+
+class _OrEnterManually extends StatelessWidget {
+  const _OrEnterManually();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+      child: Row(
+        children: [
+          const Expanded(child: Divider()),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              AppLocalizations.of(context)!.orEnterManually,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const Expanded(child: Divider()),
+        ],
+      ),
+    );
+  }
 }

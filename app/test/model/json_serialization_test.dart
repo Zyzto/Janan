@@ -2,10 +2,15 @@ import 'package:blood_pressure_app/features/export_import/model/column.dart';
 import 'package:blood_pressure_app/model/blood_pressure/pressure_unit.dart';
 import 'package:blood_pressure_app/model/bluetooth_input_mode.dart';
 import 'package:blood_pressure_app/model/horizontal_graph_line.dart';
+import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:blood_pressure_app/model/storage/storage.dart';
+import 'package:blood_pressure_app/model/storage/types/body_sex_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/export_format_setting.dart';
+import 'package:blood_pressure_app/model/storage/types/nullable_double_setting.dart';
+import 'package:blood_pressure_app/model/storage/types/nullable_int_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/interval_storage_setting.dart';
 import 'package:blood_pressure_app/model/storage/types/time_step.dart';
+import 'package:blood_pressure_app/model/body_sex.dart';
 import 'package:blood_pressure_app/model/weight_unit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,13 +95,21 @@ void main() {
         allowMissingValues: false,
         drawRegressionLines: false,
         startWithAddMeasurementPage: false,
+        syncBluetoothOnLaunch: true,
         compactList: false,
         horizontalGraphLines: [HorizontalGraphLine(Colors.blue, 1230)],
         bottomAppBars: true,
-        knownBleDev: ['a', 'b'],
+        knownBleDev: [
+          const KnownBleDevice(id: 'a', name: 'Device A'),
+          const KnownBleDevice(id: 'b', name: 'Device B'),
+        ],
         bleInput: BluetoothInputMode.newBluetoothInputCrossPlatform,
         weightInput: true,
         weightUnit: WeightUnit.st,
+        bodyHeightCm: 178.5,
+        birthYear: 1990,
+        bodySex: BodySex.male,
+        athleteMode: true,
         preferredPressureUnit: PressureUnit.kPa,
       );
       final fromJson = Settings.fromJson(initial.toJson());
@@ -118,6 +131,7 @@ void main() {
       expect(initial.allowMissingValues, fromJson.allowMissingValues);
       expect(initial.drawRegressionLines, fromJson.drawRegressionLines);
       expect(initial.startWithAddMeasurementPage, fromJson.startWithAddMeasurementPage);
+      expect(initial.syncBluetoothOnLaunch, fromJson.syncBluetoothOnLaunch);
       expect(initial.compactList, fromJson.compactList);
       expect(initial.horizontalGraphLines.length, fromJson.horizontalGraphLines.length);
       expect(initial.horizontalGraphLines.first.color.toARGB32(), fromJson.horizontalGraphLines.first.color.toARGB32());
@@ -129,8 +143,34 @@ void main() {
       expect(initial.weightInput, fromJson.weightInput);
       expect(initial.preferredPressureUnit, fromJson.preferredPressureUnit);
       expect(initial.weightUnit, fromJson.weightUnit);
+      expect(initial.bodyHeightCm, fromJson.bodyHeightCm);
+      expect(initial.birthYear, fromJson.birthYear);
+      expect(initial.bodySex, fromJson.bodySex);
+      expect(initial.athleteMode, fromJson.athleteMode);
 
       expect(initial.toJson(), fromJson.toJson());
+    });
+
+    test('clears nullable body profile values on explicit null', () {
+      final height = NullableDoubleSetting(initialValue: 178.5);
+      height.fromMapValue(null);
+      expect(height.value, isNull);
+
+      final year = NullableIntSetting(initialValue: 1990);
+      year.fromMapValue(null);
+      expect(year.value, isNull);
+
+      final sex = BodySexSetting(initialValue: BodySex.male);
+      sex.fromMapValue(null);
+      expect(sex.value, isNull);
+    });
+
+    test('migrates legacy knownBleDev string list', () {
+      final settings = Settings.fromJson('{"knownBleDev":["legacy-id","X4 Smart"]}');
+      expect(settings.knownBleDev, [
+        const KnownBleDevice(id: 'legacy-id', name: 'legacy-id'),
+        const KnownBleDevice(id: 'X4 Smart', name: 'X4 Smart'),
+      ]);
     });
 
     test('should not crash when parsing incorrect json', () {

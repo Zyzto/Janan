@@ -160,4 +160,19 @@ void main() {
     expect(returnedEntry?.map((e) => e.record), equals(testMeasurements));
   });
 
+  testWidgets('separates bluetooth check from manual entry', (tester) async {
+    await tester.pumpWidget(appBase(
+      AddMultipleEntriesForm(
+        mockBleInput: (_) => const ListTile(title: Text('mockBleInput')),
+      ),
+      settings: Settings(bleInput: BluetoothInputMode.disabled),
+    ));
+    await tester.pumpAndSettle();
+
+    final localizations = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text('mockBleInput'), findsOneWidget);
+    expect(find.text(localizations.orEnterManually), findsOneWidget);
+    expect(find.byType(AddEntryForm), findsOneWidget);
+  });
+
 }

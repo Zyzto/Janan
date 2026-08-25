@@ -4,9 +4,14 @@ import 'package:blood_pressure_app/features/bluetooth/bluetooth_input.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/ble_read_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/bluetooth_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/ble_measurement_data.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_weight_data.dart';
 import 'package:blood_pressure_app/features/bluetooth/logic/device_scan_cubit.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/closed_bluetooth_input.dart';
+import 'package:blood_pressure_app/features/bluetooth/ui/device_connecting_placeholder.dart';
+import 'package:blood_pressure_app/features/bluetooth/ui/measurement_failure.dart';
 import 'package:blood_pressure_app/features/bluetooth/ui/measurement_success.dart';
+import 'package:blood_pressure_app/features/bluetooth/ui/weight_measurement_success.dart';
+import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:blood_pressure_app/model/bluetooth_measurement_import_mode.dart';
 import 'package:blood_pressure_app/model/storage/settings.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +27,12 @@ class _MockDeviceScanCubit extends MockCubit<DeviceScanState>
     implements DeviceScanCubit {}
 
 class _MockBleReadCubit extends MockCubit<BleReadState>
-    implements BleReadCubit {}
+    implements BleReadCubit {
+  _MockBleReadCubit([this.deviceName]);
+
+  @override
+  final String? deviceName;
+}
 
 class _MockBluetoothCubitFailingEnable extends MockCubit<BluetoothState>
     implements BluetoothCubit {
@@ -199,4 +209,228 @@ void main() {
     await tester.pumpAndSettle();
     expect(reads.length, 1);
   });
+
+  testWidgets('shows connecting progress for a named meter', (tester) async {
+    final bluetoothCubit = _MockBluetoothCubit();
+    whenListen(bluetoothCubit,
+        Stream<BluetoothState>.fromIterable([BluetoothStateReady()]),
+        initialState: BluetoothStateReady());
+    final deviceScanCubit = _MockDeviceScanCubit();
+    final bleReadCubit = _MockBleReadCubit('X4 Smart');
+    final selected = DeviceSelected(bleReadCubit);
+    whenListen(
+        deviceScanCubit, Stream<DeviceScanState>.fromIterable([selected]),
+        initialState: selected);
+    whenListen(
+      bleReadCubit,
+      Stream<BleReadState>.fromIterable([BleReadInProgress()]),
+      initialState: BleReadInProgress(),
+    );
+
+    await tester.pumpWidget(materialApp(BluetoothInput(
+      manager: MockBluetoothManager(),
+      onMeasurement: (_) {},
+      onAllMeasurements: (_) {},
+      bluetoothCubit: () => bluetoothCubit,
+      deviceScanCubit: () => deviceScanCubit,
+      bleReadCubit: () => bleReadCubit,
+    )));
+    await tester.tap(find.byType(ClosedBluetoothInput));
+    await tester.pump();
+
+    final localizations = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.byType(DeviceConnectingPlaceholder), findsOneWidget);
+    expect(find.text(localizations.connectingToDevice('X4 Smart')), findsOneWidget);
+    expect(find.text(localizations.readingMeasurement), findsOneWidget);
+  });
+
+  testWidgets('saves a Eufy scale weight', (tester) async {
+    final bluetoothCubit = _MockBluetoothCubit();
+    whenListen(bluetoothCubit,
+        Stream<BluetoothState>.fromIterable([BluetoothStateReady()]),
+        initialState: BluetoothStateReady());
+    final deviceScanCubit = _MockDeviceScanCubit();
+    final bleReadCubit = _MockBleReadCubit('eufy T9147');
+    final selected = DeviceSelected(bleReadCubit);
+    whenListen(
+        deviceScanCubit, Stream<DeviceScanState>.fromIterable([selected]),
+        initialState: selected);
+    final weight = BleWeightData(
+      kg: 102.3,
+      time: DateTime(2026, 8, 24, 8, 9),
+    );
+    whenListen(
+      bleReadCubit,
+      Stream<BleReadState>.fromIterable([BleReadWeightSuccess(weight)]),
+      initialState: BleReadWeightSuccess(weight),
+    );
+    final weights = MockBodyweightRepository();
+    final settings = Settings();
+
+    await tester.pumpWidget(appBase(
+      BluetoothInput(
+        manager: MockBluetoothManager(),
+        onMeasurement: (_) {},
+        onAllMeasurements: (_) {},
+        bluetoothCubit: () => bluetoothCubit,
+        deviceScanCubit: () => deviceScanCubit,
+        bleReadCubit: () => bleReadCubit,
+      ),
+      settings: settings,
+      weightRepo: weights,
+    ));
+    await tester.tap(find.byType(ClosedBluetoothInput));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(WeightMeasurementSuccess), findsOneWidget);
+    expect(find.text('102.3 kg'), findsOneWidget);
+    expect(weights.data, hasLength(1));
+    expect(weights.data.first.weight.kg, closeTo(102.3, 0.001));
+    expect(settings.weightInput, isTrue);
+  });
+
+  testWidgets('upgrades a recent weight-only save when impedance arrives', (tester) async {
+    final bluetoothCubit = _MockBluetoothCubit();
+    whenListen(bluetoothCubit,
+        Stream<BluetoothState>.fromIterable([BluetoothStateReady()]),
+        initialState: BluetoothStateReady());
+    final deviceScanCubit = _MockDeviceScanCubit();
+    final bleReadCubit = _MockBleReadCubit('eufy T9147');
+    final selected = DeviceSelected(bleReadCubit);
+    whenListen(
+        deviceScanCubit, Stream<DeviceScanState>.fromIterable([selected]),
+        initialState: selected);
+    final time = DateTime(2026, 8, 24, 8, 9);
+    final weight = BleWeightData(
+      kg: 102.3,
+      time: time,
+      impedance: 500,
+    );
+    whenListen(
+      bleReadCubit,
+      Stream<BleReadState>.fromIterable([BleReadWeightSuccess(weight)]),
+      initialState: BleReadWeightSuccess(weight),
+    );
+    final weights = MockBodyweightRepository();
+    await weights.add(BodyweightRecord(
+      time: time.subtract(const Duration(minutes: 1)),
+      weight: Weight.kg(102.3),
+    ));
+
+    await tester.pumpWidget(appBase(
+      BluetoothInput(
+        manager: MockBluetoothManager(),
+        onMeasurement: (_) {},
+        onAllMeasurements: (_) {},
+        bluetoothCubit: () => bluetoothCubit,
+        deviceScanCubit: () => deviceScanCubit,
+        bleReadCubit: () => bleReadCubit,
+      ),
+      settings: Settings(),
+      weightRepo: weights,
+    ));
+    await tester.tap(find.byType(ClosedBluetoothInput));
+    await tester.pumpAndSettle();
+
+    expect(weights.data, hasLength(1));
+    expect(weights.data.first.impedanceOhm, closeTo(500, 0.001));
+  });
+
+  testWidgets('fills the form instead of saving when review mode has onWeight', (tester) async {
+    final bluetoothCubit = _MockBluetoothCubit();
+    whenListen(bluetoothCubit,
+        Stream<BluetoothState>.fromIterable([BluetoothStateReady()]),
+        initialState: BluetoothStateReady());
+    final deviceScanCubit = _MockDeviceScanCubit();
+    final bleReadCubit = _MockBleReadCubit('eufy T9147');
+    final selected = DeviceSelected(bleReadCubit);
+    whenListen(
+        deviceScanCubit, Stream<DeviceScanState>.fromIterable([selected]),
+        initialState: selected);
+    final weight = BleWeightData(
+      kg: 102.3,
+      time: DateTime(2026, 8, 24, 8, 9),
+      impedance: 500,
+    );
+    whenListen(
+      bleReadCubit,
+      Stream<BleReadState>.fromIterable([BleReadWeightSuccess(weight)]),
+      initialState: BleReadWeightSuccess(weight),
+    );
+    final weights = MockBodyweightRepository();
+    final reviewed = <BodyweightRecord>[];
+
+    await tester.pumpWidget(appBase(
+      BluetoothInput(
+        manager: MockBluetoothManager(),
+        onMeasurement: (_) {},
+        onAllMeasurements: (_) {},
+        onWeight: reviewed.add,
+        bluetoothCubit: () => bluetoothCubit,
+        deviceScanCubit: () => deviceScanCubit,
+        bleReadCubit: () => bleReadCubit,
+      ),
+      settings: Settings(),
+      weightRepo: weights,
+    ));
+    await tester.tap(find.byType(ClosedBluetoothInput));
+    await tester.pumpAndSettle();
+
+    expect(weights.data, isEmpty);
+    expect(reviewed, hasLength(1));
+    expect(reviewed.first.impedanceOhm, closeTo(500, 0.001));
+    expect(find.byType(WeightMeasurementSuccess), findsOneWidget);
+  });
+
+  testWidgets('does not import measurements when the diary cannot be read', (tester) async {
+    final settings = Settings(
+      bluetoothImportMode: BluetoothMeasurementImportMode.all,
+      autostartBluetoothInput: true,
+    );
+    final bluetoothCubit = _MockBluetoothCubit();
+    whenListen(bluetoothCubit,
+        Stream<BluetoothState>.fromIterable([BluetoothStateReady()]),
+        initialState: BluetoothStateReady());
+    final deviceScanCubit = _MockDeviceScanCubit();
+    final bleReadCubit = _MockBleReadCubit();
+    final selected = DeviceSelected(bleReadCubit);
+    whenListen(
+        deviceScanCubit, Stream<DeviceScanState>.fromIterable([selected]),
+        initialState: selected);
+    final bleReadOk = BleReadMultiple([BleMeasurementData(
+      systolic: 123,
+      diastolic: 45,
+      meanArterialPressure: 67,
+      isMMHG: true,
+    )]);
+    whenListen(
+      bleReadCubit,
+      Stream<BleReadState>.fromIterable([bleReadOk]),
+      initialState: bleReadOk,
+    );
+    final reads = <BloodPressureRecord>[];
+
+    await tester.pumpWidget(appBase(
+      BluetoothInput(
+        manager: MockBluetoothManager(),
+        onMeasurement: reads.add,
+        onAllMeasurements: reads.addAll,
+        bluetoothCubit: () => bluetoothCubit,
+        deviceScanCubit: () => deviceScanCubit,
+      ),
+      settings: settings,
+      bpRepo: _ThrowingBloodPressureRepository(),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(reads, isEmpty);
+    expect(find.byType(MeasurementFailure), findsOneWidget);
+  });
+}
+
+class _ThrowingBloodPressureRepository extends MockBloodPressureRepository {
+  @override
+  Future<List<BloodPressureRecord>> get(DateRange range) async {
+    throw StateError('db down');
+  }
 }

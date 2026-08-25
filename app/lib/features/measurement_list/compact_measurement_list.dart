@@ -1,11 +1,11 @@
 import 'package:blood_pressure_app/components/nullable_text.dart';
 import 'package:blood_pressure_app/components/pressure_text.dart';
-import 'package:blood_pressure_app/data_util/entry_context.dart';
+import 'package:blood_pressure_app/features/measurement_list/measurement_detail_screen.dart';
+import 'package:blood_pressure_app/features/measurement_list/previous_measurement.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:blood_pressure_app/model/combined_entry.dart';
 import 'package:blood_pressure_app/model/storage/settings.dart';
 import 'package:flutter/material.dart';
-import 'package:health_data_store/health_data_store.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -65,75 +65,63 @@ class _CompactMeasurementListState extends State<CompactMeasurementList> {
     ],
   );
 
-  Widget _itemBuilder(BuildContext context, int index) => Column(
-    children: [
-      Dismissible(
-        key: Key(widget.data[index].time.toIso8601String()),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd) { // edit
-            await context.createEntry(widget.data[index]);
-            return false;
-          } else { // delete
-            await context.deleteEntry(widget.data[index]);
-            return false;
-          }
-        },
-        onDismissed: (direction) {},
-        background: Container(
-          width: 10,
-          decoration:
-          BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(5)),
-          child: const Align(alignment: Alignment(-0.95, 0), child: Icon(Icons.edit)),
+  Widget _itemBuilder(BuildContext context, int index) {
+    final entry = widget.data[index];
+    return Column(
+      children: [
+        InkWell(
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => MeasurementDetailScreen(
+                entry: entry,
+                previous: previousBloodPressureInList(widget.data, index),
+              ),
+            ));
+          },
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 40),
+            child: Row(children: [
+              Expanded(
+                flex: _sideFlex,
+                child: const SizedBox(),
+              ),
+              Expanded(
+                flex: _tableElementsSizes[0],
+                child: Text(formatter.format(entry.time)),),
+              Expanded(
+                  flex: _tableElementsSizes[1],
+                  child: PressureText(entry.sys)),
+              Expanded(
+                flex: _tableElementsSizes[2],
+                child: PressureText(entry.dia),),
+              Expanded(
+                flex: _tableElementsSizes[3],
+                child: NullableText(entry.pul?.toString()),),
+              Expanded(
+                flex: _tableElementsSizes[4],
+                child: NullableText(() {
+                  String note = entry.note?.note ?? '';
+                  final i = entry.intake;
+                  if (i != null) {
+                    note += '${i.medicine.designation}(${i.dosis.mg}mg)';
+                  }
+                  return note.isEmpty ? null : note;
+                }()),
+              ),
+              Expanded(
+                flex: _sideFlex,
+                child: const SizedBox(),
+              ),
+            ],),
+          ),
         ),
-        secondaryBackground: Container(
-          width: 10,
-          decoration:
-          BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(5)),
-          child: const Align(alignment: Alignment(0.95, 0), child: Icon(Icons.delete)),
+        const Divider(
+          thickness: 1,
+          height: 1,
         ),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 40),
-          child: Row(children: [
-            Expanded(
-              flex: _sideFlex,
-              child: const SizedBox(),
-            ),
-            Expanded(
-              flex: _tableElementsSizes[0],
-              child: Text(formatter.format(widget.data[index].time)),),
-            Expanded(
-                flex: _tableElementsSizes[1],
-                child: PressureText(widget.data[index].sys)),
-            Expanded(
-              flex: _tableElementsSizes[2],
-              child: PressureText(widget.data[index].dia),),
-            Expanded(
-              flex: _tableElementsSizes[3],
-              child: NullableText(widget.data[index].pul?.toString()),),
-            Expanded(
-              flex: _tableElementsSizes[4],
-              child: NullableText(() {
-                String note = widget.data[index].note?.note ?? '';
-                final i = widget.data[index].intake;
-                if (i != null) {
-                  note += '${i.medicine.designation}(${i.dosis.mg}mg)';
-                }
-                return note.isEmpty ? null : note;
-              }()),
-            ),
-            Expanded(
-              flex: _sideFlex,
-              child: const SizedBox(),
-            ),
-          ],),
-        ),
-      ),
-      const Divider(
-        thickness: 1,
-        height: 1,
-      ),
-    ],
-  );
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

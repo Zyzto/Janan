@@ -1,399 +1,186 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/ble_measurement_data.dart';
-import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/microlife_measurement_data.dart';
-import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/microlife_protocol.dart';
-import 'package:blood_pressure_app/features/bluetooth/logic/characteristics/yonker_measurement_data.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_device_read_result.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_device_registry.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_gatt_session.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_weight_data.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/eufy_p1_scale_profile.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/gatt_blood_pressure_profile.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/microlife_profile.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/yonker_profile.dart';
 import 'package:blood_pressure_app/logging.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'ble_read_state.dart';
 
-/// Generic cubit a device implementation implements for reading bluetooth values.
+/// Connects to a BLE device, picks a [BleDeviceProfile], and emits the result.
 class BleReadCubit extends Cubit<BleReadState> with TypeLogger {
-  /// Start reading a characteristic from a device.
+  /// Start reading from [device].
   BleReadCubit({
     required this.device,
     required this.cm,
     this.deviceName,
-  }): super(BleReadInProgress());
+    BleDeviceRegistry? registry,
+  }) : registry = registry ?? defaultBleDeviceRegistry,
+       super(BleReadInProgress());
 
   /// Bluetooth device to connect to.
   final Peripheral device;
 
+  /// Central used for connect, discover, and disconnect.
   final CentralManager cm;
 
-  /// Advertised name of [device], used to detect devices that deviate from the
-  /// GATT spec (currently some Beurer devices, see [isKnownBigEndianDevice]).
+  /// Advertised name of [device], used by profiles for model quirks.
   final String? deviceName;
 
-  static const defaultServiceUUID = '1810';
-  static const defaultCharacteristicUUID = '2A35';
+  /// Profiles consulted after GATT discovery.
+  final BleDeviceRegistry registry;
 
-  static const yonkerServiceUUID = 'cdeacd80-5235-4c07-8846-93a37ee6b86d';
-  static const yonkerCharacteristicUUID = 'cdeacd81-5235-4c07-8846-93a37ee6b86d';
+  static const defaultServiceUUID = GattBloodPressureProfile.serviceUUID;
+  static const defaultCharacteristicUUID = GattBloodPressureProfile.characteristicUUID;
 
-  static const microlifeServiceUUID = 'fff0';
-  static const microlifeNotifyCharacteristicUUID = 'fff1';
-  static const microlifeWriteCharacteristicUUID = 'fff2';
+  static const yonkerServiceUUID = YonkerProfile.serviceUUID;
+  static const yonkerCharacteristicUUID = YonkerProfile.characteristicUUID;
 
-  /// How long to let a freshly connected device settle before subscribing.
-  static const _settleDelay = Duration(milliseconds: 100);
+  static const microlifeServiceUUID = MicrolifeProfile.serviceUUID;
+  static const microlifeNotifyCharacteristicUUID = MicrolifeProfile.notifyCharacteristicUUID;
+  static const microlifeWriteCharacteristicUUID = MicrolifeProfile.writeCharacteristicUUID;
 
-  /// Maximum number of bytes to be written to the device in a single GATT write.
-  static const _microlifeWriteChunkSize = 20;
+  static const eufyScaleServiceUUID = EufyP1ScaleProfile.serviceUUID;
+  static const eufyScaleNotifyCharacteristicUUID = EufyP1ScaleProfile.notifyCharacteristicUUID;
+  static const eufyScaleWriteCharacteristicUUID = EufyP1ScaleProfile.writeCharacteristicUUID;
 
-  static const _microlifeResponseTimeout = Duration(seconds: 30);
-  final List<int> _microlifeResponseByteBuffer = [];
-  Completer<Uint8List>? _microlifePendingResponse;
+  static const _connectTimeout = Duration(seconds: 20);
+
+  bool _connected = false;
 
   /// Whether [advertisedName] belongs to a model known to send multi byte
   /// fields big endian instead of the little endian the spec requires.
-  ///
-  /// Currently supports some Beurer devices. The official Beurer app keeps the same list
-  /// of models and uses it to pick between the byte orders.
   @visibleForTesting
-  static bool isKnownBigEndianDevice(String? advertisedName) {
-    if (advertisedName == null) return false;
-    final normalized = advertisedName.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
-    return const ['BM48', 'BM59', 'BM85', 'ELITE900']
-        .any(normalized.contains);
-  }
+  static bool isKnownBigEndianDevice(String? advertisedName) =>
+      GattBloodPressureProfile.isKnownBigEndianDevice(advertisedName);
 
   Future<bool> _connectDevice() async {
+    if (isClosed) return false;
     logger.info('Connecting to ${device.uuid}');
-    final result = cm.connectionStateChanged
-        .where((e) => e.peripheral == device)
-        .first;
-    await cm.connect(device);
-    logger.finer('connect command send');
-    final success = await result;
-    logger.finer('Connection result: $success');
-    return success.state == ConnectionState.connected;
+    final connected = Completer<bool>();
+    final subscription = cm.connectionStateChanged
+        .where((event) => event.peripheral == device)
+        .listen((event) {
+      if (connected.isCompleted) return;
+      if (event.state == ConnectionState.connected) {
+        connected.complete(true);
+      }
+    });
+    try {
+      await cm.connect(device);
+      if (isClosed) return false;
+      logger.finer('connect command send');
+      final success = await connected.future.timeout(_connectTimeout);
+      logger.finer('Connection result: $success');
+      _connected = success;
+      return success;
+    } on TimeoutException {
+      logger.warning('Timed out waiting for connection to ${device.uuid}');
+      return false;
+    } catch (error) {
+      logger.finer('connect threw, checking if already connected: $error');
+      if (isClosed) return false;
+      if (connected.isCompleted) {
+        _connected = await connected.future;
+        return _connected;
+      }
+      try {
+        await cm.discoverGATT(device).timeout(const Duration(seconds: 8));
+        _connected = true;
+        return true;
+      } catch (_) {
+        return false;
+      }
+    } finally {
+      await subscription.cancel();
+    }
   }
 
-  /// Take a 'measurement', i.e. read the blood pressure values from the given characteristicUUID
-  /// and catch all exceptions to not stall the UI if something goes wrong.
+  /// Read measurements from the device and catch failures so the UI can recover.
   Future<void> takeMeasurement() async {
     try {
       await _takeMeasurement();
-    } catch (e, stack) {
-      logger.severe('takeMeasurement failed', e, stack);
-      if (state is BleReadInProgress) emit(BleReadFailure('Could not read from device: $e'));
+    } catch (error, stack) {
+      logger.severe('takeMeasurement failed', error, stack);
+      if (!isClosed && state is BleReadInProgress) {
+        emit(BleReadFailure('Could not read from device: $error'));
+      }
     }
   }
 
   Future<void> _takeMeasurement() async {
     logger.finest('takeMeasurement();');
     if (!await _connectDevice()) {
-      emit(BleReadFailure('Unable to connect to device: ${device.uuid}'));
+      if (!isClosed) {
+        emit(BleReadFailure('Unable to connect to device: ${device.uuid}'));
+      }
       return;
     }
 
     logger.finest('starting service discovery...');
     final services = await cm.discoverGATT(device);
+    if (isClosed) return;
     if (services.isEmpty) {
       logger.warning('Device ${device.uuid} advertised no services after connecting');
     }
 
-    final gattService = services.firstWhereOrNull(
-            (s) => s.uuid == UUID.fromString(defaultServiceUUID));
-    if (gattService != null) return _readGatt(gattService);
-    logger.finest("didn't get GATT service");
-
-    final yonkerService = services.firstWhereOrNull(
-            (s) => s.uuid == UUID.fromString(yonkerServiceUUID));
-    if (yonkerService != null) return _readYonker(yonkerService);
-    logger.finest("didn't get yonker service");
-
-    final microlifeService = services.firstWhereOrNull(
-            (s) => s.uuid == UUID.fromString(microlifeServiceUUID));
-    if (microlifeService != null) return _readMicrolife(microlifeService);
-    logger.finest("didn't get microlife service");
-
-    emit(BleReadFailure('Device ${device.uuid} does not advertise a supported service'));
-  }
-
-  Future<void> _readGatt(GATTService service) async {
-    // See assigned numbers:
-    // https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Assigned_Numbers/out/en/Assigned_Numbers.pdf?v=1706215305114
-
-    final characteristic = service.characteristics
-        .firstWhereOrNull((c) => c.uuid == UUID.fromString(defaultCharacteristicUUID));
-
-    if (characteristic == null) {
-      emit(BleReadFailure('Device ${device.uuid} does not provide the expected GATT characteristic'));
+    final profile = registry.resolveDiscovered(
+      name: deviceName,
+      serviceUUIDs: services.map((service) => service.uuid),
+      characteristicUUIDs: [
+        for (final service in services)
+          ...service.characteristics.map((characteristic) => characteristic.uuid),
+      ],
+    );
+    if (profile == null) {
+      emit(BleReadFailure(
+        'Device ${device.uuid} does not advertise a supported service',
+      ));
       return;
     }
 
-    // The known big endian models also always send the user id without setting
-    // its flag, so one device check drives both quirks.
-    final bigEndian = isKnownBigEndianDevice(deviceName);
-    logger.finer('reading GATT data from $deviceName (bigEndian: $bigEndian)');
-
-    // Read or indicate data;
-    final canRead = characteristic.properties.contains(GATTCharacteristicProperty.read);
-    final canIndicate = characteristic.properties.contains(GATTCharacteristicProperty.indicate);
-    if (canRead) {
-      final data = await cm.readCharacteristic(device, characteristic);
-      final decodedData = BleMeasurementData.decode(data,
-          bigEndian: bigEndian, alwaysSendsUserId: bigEndian);
-      if (decodedData == null) {
-        logger.warning('Failed to decode GATT measurement $data for $device');
-        emit(BleReadFailure('Could not decode data'));
-        return;
-      }
-      emit(BleReadSuccess(decodedData));
-
-    } else if (canIndicate) {
-      // Beurer BM85 seems to need some rest between service discovery and subscribing or it will stay silent.
-      await Future<void>.delayed(_settleDelay);
-
-      final completer = Completer<void>();
-      final data = <BleMeasurementData>[];
-      final connectionSubscription = cm.connectionStateChanged.listen((e) {
-        if (e.peripheral == device && e.state == ConnectionState.disconnected && !completer.isCompleted) {
-          completer.complete();
+    logger.finer('using profile ${profile.id} for $deviceName');
+    final result = await profile.read(BleGattSession(
+      device: device,
+      cm: cm,
+      services: services,
+      deviceName: deviceName,
+    ));
+    switch (result) {
+      case BleBloodPressureRead(:final measurements):
+        if (measurements.isEmpty) {
+          emit(BleReadFailure('No data received'));
+        } else if (measurements.length == 1) {
+          emit(BleReadSuccess(measurements.first));
+        } else {
+          emit(BleReadMultiple(measurements));
         }
-      });
-      final dataSubscription = cm.characteristicNotified
-          .where((e) => e.characteristic == characteristic
-                  && e.peripheral == device)
-          .map((e) => BleMeasurementData.decode(e.value,
-              bigEndian: bigEndian, alwaysSendsUserId: bigEndian))
-          .listen((e) { if (e != null) data.add(e); },
-              onDone: () {
-                if (!completer.isCompleted) completer.complete();
-              },
-              onError: ([Object? e]) {
-                logger.warning(e);
-                if (!completer.isCompleted) completer.complete();
-              });
-      await cm.setCharacteristicNotifyState(device, characteristic, state: true);
-      await completer.future;
-      // if a device disconnects immediately after a data transfer, disabling notifications throws.
-      try {
-        await cm.setCharacteristicNotifyState(device, characteristic, state: false);
-      } catch (e) {
-        logger.finer('Failed to disable GATT notifications: $e');
-      }
-
-      await connectionSubscription.cancel();
-      await dataSubscription.cancel();
-
-      if (data.isEmpty) {
-        emit(BleReadFailure('No data received'));
-      } else if (data.length == 1) {
-        emit(BleReadSuccess(data.first));
-      } else {
-        emit(BleReadMultiple(data));
-      }
-
-    } else {
-      emit(BleReadFailure('Unable to get data from characteristic of GATT device ${device.uuid}'));
-    }
-  }
-
-  /// This reads from a low-cost device that may be sold under different brands:
-  /// - Yonker YK-IBPA1
-  /// - Yonker YK-BPW5
-  /// - Yongrow YK-IBPA1
-  /// - METIKO MT-YK-BPA1
-  Future<void> _readYonker(GATTService service) async {
-    // The process is as follows:
-    // 1. take an actual measurement
-    // 2. Connect to the device AFTER measurement
-    // 4. subscribe to the service/characteristic
-    // 5. the device sends us a notification (wrong timestamp)
-
-    logger.finest('_readYonker()');
-    final characteristic = service.characteristics
-        .firstWhereOrNull((c) => c.uuid == UUID.fromString(yonkerCharacteristicUUID));
-
-    if (characteristic == null) {
-      emit(BleReadFailure('Device ${device.uuid} does not provide the expected yonker characteristic'));
-      return;
-    }
-
-    final future = cm.characteristicNotified
-        .where((e) {
-          logger.fine('Received notification: ${e.value} satisfying ${e.peripheral == device}, ${e.characteristic == characteristic}');
-          return e.characteristic == characteristic && e.peripheral == device;
-        })
-        .map((e) => YonkerMeasurementData.decode(e.value)?.asBleData)
-        .first;
-    await cm.setCharacteristicNotifyState(device, characteristic, state: true);
-    final data = await future;
-    try {
-      await cm.setCharacteristicNotifyState(device, characteristic, state: false);
-    } catch (e) {
-      logger.finer('Failed to disable yonker notifications: $e');
-    }
-
-    if (data == null) {
-      logger.warning('Failed to decode yonker measurement $data for $device');
-      emit(BleReadFailure('Could not decode data'));
-      return;
-    }
-    emit(BleReadSuccess(data));
-  }
-
-  /// This reads stored measurements from a Microlife blood pressure monitor
-  /// (e.g. BP3GY1-2N), which uses a vendor specific protocol on the `fff0`
-  /// service instead of the standard GATT blood pressure service.
-  ///
-  /// The process is as follows:
-  /// 1. subscribe to notifications on `fff1` (responses can possibly be split across multiple packets)
-  /// 2. set the device clock by writing to `fff2`
-  /// 3. request all stored measurements
-  /// 4. ask the device to disconnect
-  Future<void> _readMicrolife(GATTService service) async {
-    logger.finest('_readMicrolife()');
-    final notifyCharacteristic = service.characteristics.firstWhereOrNull(
-            (c) => c.uuid == UUID.fromString(microlifeNotifyCharacteristicUUID));
-    final writeCharacteristic = service.characteristics.firstWhereOrNull(
-            (c) => c.uuid == UUID.fromString(microlifeWriteCharacteristicUUID));
-
-    if (notifyCharacteristic == null || writeCharacteristic == null) {
-      emit(BleReadFailure('Device ${device.uuid} does not provide the expected microlife characteristics'));
-      return;
-    }
-
-    _microlifeResponseByteBuffer.clear();
-    _microlifePendingResponse = null;
-    final subscription = cm.characteristicNotified
-        .where((e) => e.characteristic == notifyCharacteristic && e.peripheral == device)
-        .listen((e) => _onMicrolifeNotified(e.value));
-
-    try {
-      await cm.setCharacteristicNotifyState(device, notifyCharacteristic, state: true);
-
-      // Keep the device clock accurate for future measurements.
-      try {
-        await _sendMicrolifeCommand(writeCharacteristic,
-            MicrolifeProtocol.buildSetTimeCommand(DateTime.now()),
-            timeout: const Duration(seconds: 10));
-      } catch (e) {
-        logger.warning('Microlife set time failed, continuing: $e');
-      }
-
-      final payload = await _sendMicrolifeCommand(
-          writeCharacteristic, MicrolifeProtocol.getMeasurementsCommand);
-      final measurements = MicrolifeMeasurementData.decodeMeasurements(payload)
-          .map((m) => m.asBleData)
-          .toList();
-
-      // Politely tell the device to disconnect (no response is sent).
-      try {
-        await _sendMicrolifeCommand(
-            writeCharacteristic, MicrolifeProtocol.disconnectCommand,
-            waitForResponse: false);
-      } catch (e) {
-        logger.finer('Microlife disconnect command failed: $e');
-      }
-
-      if (measurements.isEmpty) {
-        emit(BleReadFailure('No data received'));
-      } else if (measurements.length == 1) {
-        emit(BleReadSuccess(measurements.first));
-      } else {
-        emit(BleReadMultiple(measurements));
-      }
-    } on TimeoutException {
-      logger.warning('Microlife communication timed out for ${device.uuid}');
-      emit(BleReadFailure('No data received'));
-    } catch (e) {
-      logger.warning('Microlife communication failed: $e');
-      emit(BleReadFailure('Could not decode data'));
-    } finally {
-      await subscription.cancel();
-      try {
-        await cm.setCharacteristicNotifyState(device, notifyCharacteristic, state: false);
-      } catch (e) {
-        logger.finer('Failed to disable microlife notifications: $e');
-      }
-      _microlifePendingResponse = null;
-      _microlifeResponseByteBuffer.clear();
-    }
-  }
-
-  /// Reassembles Microlife response frames from one or more notifications and
-  /// completes the [_microlifePendingResponse] once a full frame is received.
-  void _onMicrolifeNotified(Uint8List value) {
-    logger.fine('Microlife notification: $value');
-    _microlifeResponseByteBuffer.addAll(value);
-
-    final expectedLength = MicrolifeProtocol.expectedFrameLength(_microlifeResponseByteBuffer);
-    if (expectedLength == null || _microlifeResponseByteBuffer.length < expectedLength) {
-      return; // wait for the remaining packets
-    }
-
-    final frame = _microlifeResponseByteBuffer.sublist(0, expectedLength);
-    _microlifeResponseByteBuffer.clear();
-
-    final pending = _microlifePendingResponse;
-    if (pending == null || pending.isCompleted) return;
-
-    final payload = MicrolifeProtocol.parseResponsePayload(frame);
-    if (payload == null) {
-      pending.completeError(StateError('Invalid microlife frame: $frame'));
-    } else {
-      pending.complete(payload);
-    }
-  }
-
-  /// Writes [command] to the Microlife write characteristic (in chunks) and,
-  /// when [waitForResponse] is true, waits for the decoded response payload.
-  Future<Uint8List> _sendMicrolifeCommand(
-    GATTCharacteristic writeChar,
-    List<int> command, {
-    bool waitForResponse = true,
-    Duration timeout = _microlifeResponseTimeout,
-  }) async {
-    _microlifeResponseByteBuffer.clear();
-    Completer<Uint8List>? completer;
-    if (waitForResponse) {
-      completer = Completer<Uint8List>();
-      _microlifePendingResponse = completer;
-    }
-
-    final writeType = writeChar.properties.contains(GATTCharacteristicProperty.write)
-        ? GATTCharacteristicWriteType.withResponse
-        : GATTCharacteristicWriteType.withoutResponse;
-
-    for (var offset = 0; offset < command.length; offset += _microlifeWriteChunkSize) {
-      final end = min(offset + _microlifeWriteChunkSize, command.length);
-      await cm.writeCharacteristic(
-        device,
-        writeChar,
-        value: Uint8List.fromList(command.sublist(offset, end)),
-        type: writeType,
-      );
-    }
-
-    if (completer == null) return Uint8List(0);
-    try {
-      return await completer.future.timeout(timeout);
-    } finally {
-      if (identical(_microlifePendingResponse, completer)) {
-        _microlifePendingResponse = null;
-      }
+      case BleWeightRead(:final weight):
+        emit(BleReadWeightSuccess(weight));
+      case BleDeviceReadFailure(:final reason):
+        emit(BleReadFailure(reason));
     }
   }
 
   @mustCallSuper
   @override
   Future<void> close() async {
-    try {
-      await cm.disconnect(device).timeout(Duration(seconds: 10));
-    } catch (e) {
-      logger.warning('Failed to disconnect from ${device.uuid}: $e');
+    if (_connected) {
+      try {
+        await cm.disconnect(device).timeout(const Duration(seconds: 2));
+      } catch (error) {
+        logger.warning('Failed to disconnect from ${device.uuid}: $error');
+      }
     }
-
     await super.close();
   }
 
