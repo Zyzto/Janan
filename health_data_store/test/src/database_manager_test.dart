@@ -157,6 +157,23 @@ void main() {
     expect(data.first.keys, hasLength(3));
     expect(data.first['color'], equals(0xFF990098));
   });
+  test('adds impedance column when upgrading from schema v4', () async {
+    final raw = await openDatabase(inMemoryDatabasePath);
+    addTearDown(raw.close);
+    await raw.execute('CREATE TABLE "Keep1" ("id" INTEGER)');
+    await raw.execute('CREATE TABLE "Keep2" ("id" INTEGER)');
+    await raw.execute('CREATE TABLE "Keep3" ("id" INTEGER)');
+    await raw.execute('CREATE TABLE "Weight" ('
+        '"entryID" INTEGER NOT NULL,'
+        '"weightKg" REAL NOT NULL,'
+        'PRIMARY KEY("entryID")'
+        ');');
+    await raw.setVersion(4);
+    final db = await DatabaseManager.load(raw);
+    final info = await db.db.rawQuery('PRAGMA table_info(Weight)');
+    expect(info.any((row) => row['name'] == 'impedanceOhm'), isTrue);
+    expect(await db.db.getVersion(), 5);
+  });
   test('creates weight table correctly', () async {
     final db = await mockDBManager();
     addTearDown(db.close);
@@ -164,11 +181,13 @@ void main() {
     await db.db.insert('Weight', {
       'entryID': 2,
       'weightKg': 123.45,
+      'impedanceOhm': 512.3,
     });
     final data = await db.db.query('Weight');
     expect(data, hasLength(1));
-    expect(data.first.keys, hasLength(2));
+    expect(data.first.keys, hasLength(3));
     expect(data.first['weightKg'], equals(123.45));
+    expect(data.first['impedanceOhm'], equals(512.3));
   });
   test('should cleanup unused timestamps', () async {
     final db = await mockDBManager();

@@ -17,7 +17,7 @@ void main() {
     final db = await mockDBManager();
     addTearDown(db.close);
     final repo = BodyweightRepositoryImpl(db.db);
-    final r1 = mockWeight(time: 123456000, kg: 123.456);
+    final r1 = mockWeight(time: 123456000, kg: 123.456, impedanceOhm: 498.2);
     final r2 = mockWeight(time: 1234567000, kg: 0.456);
     await repo.add(r1);
     await repo.add(r2);
@@ -28,6 +28,8 @@ void main() {
     ));
     expect(values, hasLength(2));
     expect(values, containsAll([r1, r2]));
+    expect(values.firstWhere((r) => r.weight.kg > 1).impedanceOhm, closeTo(498.2, 0.001));
+    expect(values.firstWhere((r) => r.weight.kg < 1).impedanceOhm, isNull);
   });
   test('removes records', () async {
     final db = await mockDBManager();
