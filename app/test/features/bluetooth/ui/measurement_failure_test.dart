@@ -29,4 +29,13 @@ void main() {
     await tester.pump();
     expect(tapCount, 2);
   });
+
+  testWidgets('shows the failure reason', (WidgetTester tester) async {
+    await tester.pumpWidget(materialApp(MeasurementFailure(
+      onTap: () {},
+      reason: 'Characteristic not found',
+    )));
+
+    expect(find.text('Characteristic not found'), findsOneWidget);
+  });
 }

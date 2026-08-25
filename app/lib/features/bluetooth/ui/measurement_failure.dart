@@ -24,9 +24,20 @@ class MeasurementFailure extends StatelessWidget with TypeLogger {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.red),
+              Icon(
+                Icons.error_outline,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 8,),
               Text(AppLocalizations.of(context)!.errMeasurementRead),
+              if (reason.trim().isNotEmpty) ...[
+                const SizedBox(height: 8,),
+                Text(
+                  reason,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
               const SizedBox(height: 4,),
               Text(AppLocalizations.of(context)!.tapToClose),
               const SizedBox(height: 8,),

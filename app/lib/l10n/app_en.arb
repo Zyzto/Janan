@@ -329,6 +329,76 @@
   "pulseRateExceedsUpperLimit": "Pulse rate exceeds upper limit",
   "pulseRateLessThanLowerLimit": "Pulse rate is less than lower limit",
   "availableDevices": "Available devices",
+  "showOtherDevices": "Show other devices",
+  "searchDevices": "Search devices",
+  "noMatchingDevices": "No devices match your search.",
+  "keepMeterNearby": "Keep your meter nearby and turned on.",
+  "tapToConnect": "Tap to connect",
+  "tapToEnableBluetooth": "Tap to turn Bluetooth on",
+  "tapToGrantBlePermission": "Tap to grant Bluetooth permission",
+  "connectingToDevice": "Connecting to {name}",
+  "@connectingToDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToMeter": "Connecting to meter",
+  "readingMeasurement": "Reading measurement…",
+  "lookingForDevice": "Looking for {name}…",
+  "@lookingForDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "waitForMeterMeasurement": "Take a measurement on the meter if nothing appears.",
+  "newMeasurements": "{count} new",
+  "@newMeasurements": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alreadySavedCount": "{count} already saved",
+  "@alreadySavedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "showAlreadySaved": "Show already saved",
+  "hideAlreadySaved": "Hide already saved",
+  "allMeasurementsAlreadySaved": "All measurements are already in your diary.",
+  "alreadySaved": "Saved",
+  "importNew": "Import {count} new",
+  "@importNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readFromDevice": "Read from {name}",
+  "@readFromDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "readFromDevices": "Read from {count} devices",
+  "@readFromDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteAllMedicineIntakes": "Delete all medicine intakes",
   "deleteAllNotes": "Delete all notes",
   "date": "Date",

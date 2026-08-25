@@ -5,6 +5,7 @@ import 'package:blood_pressure_app/features/bluetooth/ui/measurement_multiple.da
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:health_data_store/health_data_store.dart';
 
 import '../../../util.dart';
 
@@ -116,5 +117,60 @@ void main() {
     expect(importedAll, isNotNull);
     expect(importedAll!.length, 2);
     expect(importedAll, containsAll(measurements));
+  });
+
+  testWidgets('hides already saved measurements until revealed', (WidgetTester tester) async {
+    final time = DateTime(2026, 4, 5, 16, 19, 10);
+    final savedReading = BleMeasurementData(
+      systolic: 145,
+      diastolic: 81,
+      meanArterialPressure: 102,
+      isMMHG: true,
+      pulse: 80,
+      timestamp: time,
+    );
+    final newReading = BleMeasurementData(
+      systolic: 127,
+      diastolic: 80,
+      meanArterialPressure: 95,
+      isMMHG: true,
+      pulse: 63,
+      timestamp: time.add(const Duration(minutes: 1)),
+    );
+
+    List<BleMeasurementData>? imported;
+    await tester.pumpWidget(materialApp(MeasurementMultiple(
+      onClosed: () {},
+      onSelect: (_) {},
+      onSelectAll: (data) => imported = data,
+      measurements: [savedReading, newReading],
+      alreadySaved: [
+        BloodPressureRecord(
+          time: time,
+          sys: Pressure.mmHg(145),
+          dia: Pressure.mmHg(81),
+          pul: 80,
+        ),
+      ],
+    )));
+    await tester.pump();
+
+    final localizations = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(
+      find.text('${localizations.newMeasurements(1)} · ${localizations.alreadySavedCount(1)}'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('127/80'), findsOneWidget);
+    expect(find.textContaining('145/81'), findsNothing);
+    expect(find.text(localizations.importNew(1)), findsOneWidget);
+
+    await tester.tap(find.text(localizations.showAlreadySaved));
+    await tester.pump();
+    expect(find.textContaining('145/81'), findsOneWidget);
+    expect(find.text(localizations.alreadySaved), findsWidgets);
+
+    await tester.tap(find.text(localizations.importNew(1)));
+    await tester.pump();
+    expect(imported, [newReading]);
   });
 }

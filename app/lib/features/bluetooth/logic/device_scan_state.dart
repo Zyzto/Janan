@@ -18,11 +18,14 @@ class DeviceSelected extends DeviceScanState {
 
 /// Multiple unrecognized devices.
 class DeviceListAvailable extends DeviceScanState {
-  /// Indicate that multiple unrecognized have been found.
-  DeviceListAvailable(this.devices);
+  /// Indicate that unrecognized devices have been found.
+  DeviceListAvailable(this.devices, {this.otherDevices = const []});
 
-  /// All found devices.
+  /// Likely blood-pressure devices.
   final List<BluetoothDevice> devices;
+
+  /// Other nearby devices hidden behind a fallback expander.
+  final List<BluetoothDevice> otherDevices;
 }
 
 /// One unrecognized device has been found.

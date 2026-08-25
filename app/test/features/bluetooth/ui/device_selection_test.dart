@@ -2,7 +2,7 @@ import 'package:blood_pressure_app/features/bluetooth/backend/bluetooth_backend.
 import 'package:blood_pressure_app/features/bluetooth/ui/device_selection.dart';
 import 'package:blood_pressure_app/l10n/app_localizations.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../util.dart';
@@ -16,6 +16,9 @@ class MockBluetoothDevice extends Fake implements BluetoothDevice {
 
   @override
   String get name => source.advertisement.name ?? source.peripheral.uuid.toString();
+
+  @override
+  String get deviceId => source.peripheral.uuid.toString();
 }
 
 class MockCentralManager extends Fake implements CentralManager {}
@@ -86,6 +89,7 @@ void main() {
             for (int i = 1; i < 20; i++)
               getDev(i)
           ],
+          isScanning: false,
           onAccepted: (dev) => fail('No entry tapped'),
         ),
         SizedBox(height: 400),
@@ -94,7 +98,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final scrollable = find.descendant(
-        of: find.byType(DeviceSelection),
+        of: find.byKey(const Key('device-scan-list')),
         matching: find.byType(Scrollable),
     );
     expect(scrollable, findsOneWidget);
@@ -102,5 +106,84 @@ void main() {
     await tester.scrollUntilVisible(find.text('dev10'), 200.0,
         scrollable: scrollable);
     expect(find.text('dev10').hitTestable(), findsOneWidget);
+  });
+
+  testWidgets('hides other devices until expanded', (WidgetTester tester) async {
+    BluetoothDevice getDev(String name) => MockBluetoothDevice(
+      MockCentralManager(),
+      DiscoveredEventArgs(
+        MockPeripheral('00000000-0000-0000-0000-001234567890'),
+        -1,
+        MockAdvertisement(name),
+      ),
+    );
+
+    await tester.pumpWidget(materialApp(DeviceSelection(
+      scanResults: [getDev('X4 Smart')],
+      otherDevices: [getDev('Headphones')],
+      isScanning: false,
+      onAccepted: (dev) => fail('No entry tapped'),
+    )));
+
+    final localizations = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text('X4 Smart'), findsOneWidget);
+    expect(find.text('Headphones'), findsNothing);
+    expect(find.textContaining(localizations.showOtherDevices), findsOneWidget);
+
+    await tester.tap(find.textContaining(localizations.showOtherDevices));
+    await tester.pumpAndSettle();
+    expect(find.text('Headphones'), findsOneWidget);
+  });
+
+  testWidgets('filters devices by search query', (WidgetTester tester) async {
+    BluetoothDevice getDev(String name) => MockBluetoothDevice(
+      MockCentralManager(),
+      DiscoveredEventArgs(
+        MockPeripheral('00000000-0000-0000-0000-001234567890'),
+        -1,
+        MockAdvertisement(name),
+      ),
+    );
+
+    await tester.pumpWidget(materialApp(DeviceSelection(
+      scanResults: [getDev('X4 Smart'), getDev('BM 59'), getDev('eufy T9147')],
+      onAccepted: (dev) => fail('No entry tapped'),
+    )));
+
+    final localizations = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text('X4 Smart'), findsOneWidget);
+    expect(find.text('BM 59'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'x4');
+    await tester.pump();
+    expect(find.text('X4 Smart'), findsOneWidget);
+    expect(find.text('BM 59'), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await tester.pump();
+    expect(find.text(localizations.noMatchingDevices), findsOneWidget);
+  });
+
+  testWidgets('expanded list uses the available height', (WidgetTester tester) async {
+    BluetoothDevice getDev(int i) => MockBluetoothDevice(
+      MockCentralManager(),
+      DiscoveredEventArgs(
+        MockPeripheral('00000000-0000-0000-0000-001234567${i.toString().padLeft(3, '0')}'),
+        -1,
+        MockAdvertisement('dev$i'),
+      ),
+    );
+
+    await tester.pumpWidget(materialApp(DeviceSelection(
+      expand: true,
+      scanResults: [
+        for (int i = 1; i < 20; i++) getDev(i),
+      ],
+      isScanning: false,
+      onAccepted: (dev) => fail('No entry tapped'),
+    )));
+
+    expect(find.text('dev1').hitTestable(), findsOneWidget);
+    expect(find.text('dev5').hitTestable(), findsOneWidget);
   });
 }

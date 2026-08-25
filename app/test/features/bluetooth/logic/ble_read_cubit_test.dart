@@ -1,4 +1,5 @@
 import 'package:blood_pressure_app/features/bluetooth/logic/ble_read_cubit.dart';
+import 'package:blood_pressure_app/features/bluetooth/logic/devices/gatt_blood_pressure_profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /*import 'package:blood_pressure_app/features/bluetooth/ble_read_cubit.dart';
@@ -17,11 +18,12 @@ import 'ble_read_cubit_test.mocks.dart';*/
 
 void main() {
   test('detects devices that send big endian measurements', () {
+    expect(GattBloodPressureProfile.isKnownBigEndianDevice('Beurer BM85'), true);
+    expect(GattBloodPressureProfile.isKnownBigEndianDevice('BM59'), false);
+    expect(GattBloodPressureProfile.isKnownBigEndianDevice('Elite 900'), true);
+    expect(GattBloodPressureProfile.isKnownBigEndianDevice('Beurer BM96'), false);
+    expect(GattBloodPressureProfile.isKnownBigEndianDevice(null), false);
     expect(BleReadCubit.isKnownBigEndianDevice('Beurer BM85'), true);
-    expect(BleReadCubit.isKnownBigEndianDevice('BM59'), true);
-    expect(BleReadCubit.isKnownBigEndianDevice('Elite 900'), true);
-    expect(BleReadCubit.isKnownBigEndianDevice('Beurer BM96'), false);
-    expect(BleReadCubit.isKnownBigEndianDevice(null), false);
   });
 
   // TODO: test once practice shows there are no flaws in these goals:
