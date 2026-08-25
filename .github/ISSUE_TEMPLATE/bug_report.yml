@@ -5,6 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
+        This is the Zyzto fork, not the official app. A lot of the code is AI-written. See FORK.md.
+
         Thanks for taking the time to report a bug. The following questions will guide you through different aspects of your problems and help us understand the issue and reproduce it. Of course you can omit details as you see fit.
         
         Please check if there is already an issue for your bug. You may need to look through closed issues, as they are closed as soon as the fix is in the source code.

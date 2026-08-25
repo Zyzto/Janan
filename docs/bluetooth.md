@@ -1,5 +1,7 @@
 # Supported Bluetooth devices
 
+This list lives on the [Zyzto fork](../FORK.md). I use AI on this tree. Official store builds still come from upstream.
+
 In general any device that supports [`Blood Pressure Service (0x1810)`](https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/uuids/service_uuids.yaml#lines-77:79) could be used. The blood pressure measurement values are stored in the characteristic [`Blood Pressure Measurement (0x2A35)`](https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/uuids/characteristic_uuids.yaml#lines-161:163)
 
 ## Reading caveats
