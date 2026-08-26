@@ -8,19 +8,19 @@ import '../../util.dart';
 
 void main() {
   testWidgets('should initialize without errors', (tester) async {
-    await tester.pumpWidget(await materialApp(MeasurementListRow(
+    await pumpApp(tester, await materialApp(MeasurementListRow(
       data: mockEntryPos(DateTime(2023), 123, 80, 60, 'test'),),),);
     expect(tester.takeException(), isNull);
-    await tester.pumpWidget(await materialApp(MeasurementListRow(
+    await pumpApp(tester, await materialApp(MeasurementListRow(
       data: mockEntryPos(DateTime.fromMillisecondsSinceEpoch(31279811), null, null, null, 'null test'),),),);
     expect(tester.takeException(), isNull);
-    await tester.pumpWidget(await materialApp(MeasurementListRow(
+    await pumpApp(tester, await materialApp(MeasurementListRow(
       data: mockEntryPos(DateTime(2023), 124, 85, 63, 'color',Colors.cyan))));
     expect(tester.takeException(), isNull);
   });
 
   testWidgets('opens details instead of expanding', (tester) async {
-    await tester.pumpWidget(await appBase(MeasurementListRow(
+    await pumpApp(tester, await appBase(MeasurementListRow(
       data: mockEntryPos(DateTime(2023), 123, 78, 56),
     )));
     await pumpQuiet(tester);
@@ -37,7 +37,7 @@ void main() {
   });
 
   testWidgets('should display correct information', (tester) async {
-    await tester.pumpWidget(await materialApp(MeasurementListRow(
+    await pumpApp(tester, await materialApp(MeasurementListRow(
         data: mockEntryPos(DateTime(2023), 123, 78, 56, 'Test text'),),),);
     await pumpQuiet(tester);
     expect(find.text('123'), findsOneWidget);
@@ -51,7 +51,7 @@ void main() {
   });
 
   testWidgets('should not display null values', (tester) async {
-    await tester.pumpWidget(await materialApp(MeasurementListRow(
+    await pumpApp(tester, await materialApp(MeasurementListRow(
       data: mockEntry(time: DateTime(2023)),),),);
     expect(find.text('null'), findsNothing);
     expect(find.byIcon(Icons.medication), findsNothing);
@@ -63,7 +63,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       Align(
         alignment: Alignment.topCenter,
         child: MeasurementListRow(
@@ -95,7 +95,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       Align(
         alignment: Alignment.topCenter,
         child: MeasurementListRow(
@@ -120,7 +120,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       Align(
         alignment: Alignment.topCenter,
         child: MeasurementListRow(
@@ -146,7 +146,7 @@ void main() {
   });
 
   testWidgets('should indicate presence of intakes', (tester) async {
-    await tester.pumpWidget(await materialApp(MeasurementListRow(
+    await pumpApp(tester, await materialApp(MeasurementListRow(
       data: mockEntry(
         time: DateTime(2023),
         intake: (mockMedicine(designation: 'testMed', color: Colors.red), 12.0),

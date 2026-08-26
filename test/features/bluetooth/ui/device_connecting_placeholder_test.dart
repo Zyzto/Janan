@@ -6,7 +6,7 @@ import '../../../util.dart';
 
 void main() {
   testWidgets('shows a named connecting state', (WidgetTester tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       const DeviceConnectingPlaceholder(deviceName: 'X4 Smart'),
     ));
 
@@ -16,7 +16,7 @@ void main() {
   });
 
   testWidgets('falls back when the meter name is unknown', (WidgetTester tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       const DeviceConnectingPlaceholder(),
     ));
 

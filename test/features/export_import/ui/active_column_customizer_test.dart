@@ -7,6 +7,7 @@ import 'package:blood_pressure_app/model/storage/export_settings.dart';
 import 'package:blood_pressure_app/model/storage/types/export_format_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:safaeh/safaeh.dart';
 
 import '../../../util.dart';
 
@@ -22,22 +23,22 @@ void main() {
         NativeColumn.diastolic.internalIdentifier,
       ]
     );
-    await tester.pumpWidget(await materialApp(ActiveColumnCustomizer(),
+    await pumpApp(tester, await materialApp(ActiveColumnCustomizer(),
       csvExportSettings: csvSettings,
       exportSettings: exportSettings,
     ));
     expect(find.text('Custom'), findsOneWidget);
     expect(find.text('Systolic'), findsOneWidget);
     expect(find.text('Diastolic'), findsOneWidget);
-    expect(find.byType(Dialog), findsNothing);
+    expect(find.byType(SafaehTextInputSheet), findsNothing);
 
     await tester.tap(find.byIcon(Icons.save));
     await tester.pumpAndSettle();
 
-    expect(find.byType(Dialog), findsOneWidget);
+    expect(find.byType(SafaehTextInputSheet), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'test preset');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
+    await tapSafaehConfirm(tester);
     await tester.pumpAndSettle();
 
     expect(find.text('Custom'), findsNothing);
@@ -56,7 +57,7 @@ void main() {
           NativeColumn.diastolic.internalIdentifier,
         ]
     );
-    await tester.pumpWidget(await materialApp(ActiveColumnCustomizer(),
+    await pumpApp(tester, await materialApp(ActiveColumnCustomizer(),
       csvExportSettings: csvSettings,
       exportSettings: exportSettings,
     ));
@@ -85,7 +86,7 @@ void main() {
       exportFormat: ExportFormat.csv,
       presets: [customPreset],
     );
-    await tester.pumpWidget(await materialApp(ActiveColumnCustomizer(),
+    await pumpApp(tester, await materialApp(ActiveColumnCustomizer(),
       csvExportSettings: csvSettings,
       exportSettings: exportSettings,
     ));
@@ -101,7 +102,7 @@ void main() {
     expect(find.byIcon(Icons.save), findsOneWidget);
     await tester.tap(find.byIcon(Icons.save));
     await tester.pumpAndSettle();
-    expect(find.byType(Dialog), findsNothing);
+    expect(find.byType(SafaehTextInputSheet), findsNothing);
 
     expect(exportSettings.presets, hasLength(1));
     expect(exportSettings.presets.first.columns, hasLength(1));
@@ -123,7 +124,7 @@ void main() {
       exportFormat: ExportFormat.csv,
       presets: [customPreset],
     );
-    await tester.pumpWidget(await materialApp(ActiveColumnCustomizer(),
+    await pumpApp(tester, await materialApp(ActiveColumnCustomizer(),
       csvExportSettings: csvSettings,
       exportSettings: exportSettings,
     ));
@@ -139,7 +140,7 @@ void main() {
         ExportPreset('preset2', [], true),
       ],
     );
-    await tester.pumpWidget(await materialApp(ActiveColumnCustomizer(),
+    await pumpApp(tester, await materialApp(ActiveColumnCustomizer(),
       exportSettings: exportSettings,
     ));
     expect(find.text('preset1'), findsNothing);
@@ -181,7 +182,7 @@ void main() {
         ExportPreset('preset2', [], true),
       ],
     );
-    await tester.pumpWidget(await materialApp(ActiveColumnCustomizer(),
+    await pumpApp(tester, await materialApp(ActiveColumnCustomizer(),
       exportSettings: exportSettings,
     ));
     expect(find.byType(DropdownButton<String>), findsOneWidget);
@@ -200,12 +201,12 @@ void main() {
     await tester.tap(find.byIcon(Icons.save));
     await tester.pumpAndSettle();
 
-    expect(find.byType(Dialog), findsOneWidget);
+    expect(find.byType(SafaehTextInputSheet), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'uncreative');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
+    await tapSafaehConfirm(tester);
     await tester.pumpAndSettle();
-    expect(find.byType(Dialog), findsNothing);
+    expect(find.byType(SafaehTextInputSheet), findsNothing);
     expect(find.text('This title already exists'), findsNothing);
 
     await tester.tap(find.byType(DropdownButton<String>));
@@ -214,12 +215,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.save));
     await tester.pumpAndSettle();
-    expect(find.byType(Dialog), findsOneWidget);
+    expect(find.byType(SafaehTextInputSheet), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'uncreative');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
+    await tapSafaehConfirm(tester);
     await tester.pumpAndSettle();
-    expect(find.byType(Dialog), findsOneWidget);
+    expect(find.byType(SafaehTextInputSheet), findsOneWidget);
     expect(find.text('This title already exists'), findsOneWidget);
   });
 

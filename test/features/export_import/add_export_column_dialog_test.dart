@@ -9,7 +9,7 @@ import '../../util.dart';
 void main() {
   group('AddExportColumnDialog', () {
     testWidgets('should show everything on load', (tester) async {
-      await tester.pumpWidget(await materialApp(AddExportColumnDialog()));
+      await pumpApp(tester, await materialApp(AddExportColumnDialog()));
       expect(tester.takeException(), isNull);
 
       expect(find.text('SAVE'), findsOneWidget);
@@ -23,7 +23,7 @@ void main() {
       expect(find.byIcon(Icons.arrow_downward), findsNWidgets(2));
     });
     testWidgets('should prefill values', (tester) async {
-      await tester.pumpWidget(await materialApp(
+      await pumpApp(tester, await materialApp(
           AddExportColumnDialog(initialColumn: UserColumn('id', 'csvTitle', r'formatPattern$SYS'),),
       ),);
       expect(tester.takeException(), isNull);
@@ -39,7 +39,7 @@ void main() {
       expect(find.byIcon(Icons.arrow_downward), findsNWidgets(2));
     });
     testWidgets('should show preview', (tester) async {
-      await tester.pumpWidget(await materialApp(
+      await pumpApp(tester, await materialApp(
           AddExportColumnDialog(initialColumn: UserColumn('id', 'csvTitle', r'formatPattern$SYS'),),
       ),);
       await tester.pumpAndSettle();
@@ -50,7 +50,7 @@ void main() {
       expect(find.textContaining('RowDataFieldType.sys'), findsOneWidget);
     });
     testWidgets('should open format Info screen', (tester) async {
-      await tester.pumpWidget(await materialApp(AddExportColumnDialog()));
+      await pumpApp(tester, await materialApp(AddExportColumnDialog()));
 
       expect(find.byType(InformationScreen), findsNothing);
 

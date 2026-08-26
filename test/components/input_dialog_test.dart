@@ -1,15 +1,16 @@
 import 'package:blood_pressure_app/components/input_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:safaeh/safaeh.dart';
 
 import '../util.dart';
 
 void main() {
   group('InputDialog', () {
     testWidgets('should initialize without errors', (tester) async {
-      await tester.pumpWidget(await materialApp(const InputDialog()));
+      await pumpApp(tester, await materialApp(const InputDialog()));
       expect(tester.takeException(), isNull);
-      await tester.pumpWidget(await materialApp(const InputDialog(
+      await pumpApp(tester, await materialApp(const InputDialog(
             hintText: 'test hint',
             initialValue: 'initial text',
           ),),);
@@ -17,7 +18,7 @@ void main() {
       expect(find.byType(InputDialog), findsOneWidget);
     });
     testWidgets('should show prefilled text', (tester) async {
-      await tester.pumpWidget(await materialApp(const InputDialog(
+      await pumpApp(tester, await materialApp(const InputDialog(
         hintText: 'test hint',
         initialValue: 'initial text',
       ),),);
@@ -25,7 +26,7 @@ void main() {
       expect(find.text('test hint'), findsNWidgets(2));
     });
     testWidgets('should show validator errors', (tester) async {
-      await tester.pumpWidget(await materialApp(InputDialog(
+      await pumpApp(tester, await materialApp(InputDialog(
         initialValue: 'initial text',
         validator: (_) => 'test error',
       ),),);
@@ -38,7 +39,7 @@ void main() {
     });
     testWidgets('should send current text to validator', (tester) async {
       int validatorCalls = 0;
-      await tester.pumpWidget(await materialApp(InputDialog(
+      await pumpApp(tester, await materialApp(InputDialog(
         initialValue: 'initial text',
         validator: (value) {
           expect(value, 'initial text');
@@ -61,7 +62,7 @@ void main() {
     testWidgets('should start with input focused', (tester) async {
       await loadDialog(tester, (context) => showInputDialog(context, initialValue: 'testval'));
 
-      expect(find.byType(InputDialog), findsOneWidget);
+      expect(find.byType(SafaehTextInputSheet), findsOneWidget);
       final primaryFocus = FocusManager.instance.primaryFocus;
       expect(primaryFocus?.context?.widget, isNotNull);
       final focusedTextField = find.ancestor(
@@ -73,12 +74,11 @@ void main() {
     testWidgets('should allow entering a value', (tester) async {
       String? result = 'init';
       await loadDialog(tester, (context) async => result = await showInputDialog(context));
-      expect(find.byType(InputDialog), findsOneWidget);
+      expect(find.byType(SafaehTextInputSheet), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), 'inputted text');
-      expect(find.text('OK'), findsOneWidget);
-      await tester.tap(find.text('OK'));
+      await tapSafaehConfirm(tester);
       await tester.pumpAndSettle();
 
       expect(result, 'inputted text');
@@ -86,12 +86,11 @@ void main() {
     testWidgets('should not return value on cancel', (tester) async {
       String? result = 'init';
       await loadDialog(tester, (context) async => result = await showInputDialog(context, initialValue: 'test'));
-      expect(find.byType(InputDialog), findsOneWidget);
+      expect(find.byType(SafaehTextInputSheet), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), 'inputted text');
-      expect(find.text('CANCEL'), findsOneWidget);
-      await tester.tap(find.text('CANCEL'));
+      await dismissSafaeh(tester);
       await tester.pumpAndSettle();
 
       expect(result, null);

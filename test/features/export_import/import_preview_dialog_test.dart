@@ -15,7 +15,7 @@ import '../../util.dart';
 
 void main() {
   testWidgets('should open', (tester) async {
-    await tester.pumpWidget(await materialApp(ImportPreviewDialog(
+    await pumpApp(tester, await materialApp(ImportPreviewDialog(
       bottomAppBar: false,
       initialActor: _dummyActor(
         'timestampUnixMs,systolic,diastolic,pulse,notes,needlePin\n1703175193324'
@@ -36,7 +36,7 @@ void main() {
       csvTxt += '\n${1703147206000 + i},1,1,1,row-content,null';
     }
 
-    await tester.pumpWidget(await materialApp(ImportPreviewDialog(
+    await pumpApp(tester, await materialApp(ImportPreviewDialog(
       bottomAppBar: false,
       initialActor: _dummyActor(csvTxt),
       columnsManager: ExportColumnsManager(),
@@ -48,7 +48,7 @@ void main() {
     expect(find.text('…'), findsAtLeast(1));
   });
   testWidgets('should show error banner', (tester) async {
-    await tester.pumpWidget(await materialApp(ImportPreviewDialog(
+    await pumpApp(tester, await materialApp(ImportPreviewDialog(
       bottomAppBar: false,
       initialActor: _dummyActor(
         'systolic,diastolic,pulse,notes,needlePin\n123,45,67,note1,'
@@ -63,7 +63,7 @@ void main() {
     expect(find.text('OK'), findsOneWidget);
   });
   testWidgets('should have multiple lines', (tester) async {
-    await tester.pumpWidget(await materialApp(ImportPreviewDialog(
+    await pumpApp(tester, await materialApp(ImportPreviewDialog(
       bottomAppBar: false,
       initialActor: _dummyActor('line1\nline2\nline3'),
       columnsManager: ExportColumnsManager(),

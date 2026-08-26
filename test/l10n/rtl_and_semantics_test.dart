@@ -8,7 +8,7 @@ import '../util.dart';
 
 void main() {
   testWidgets('Arabic locale uses RTL direction', (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       const Text('probe'),
       locale: const Locale('ar'),
     ));
@@ -18,7 +18,7 @@ void main() {
   });
 
   testWidgets('measurement row exposes one labeled semantic node', (tester) async {
-    await tester.pumpWidget(await materialApp(MeasurementListRow(
+    await pumpApp(tester, await materialApp(MeasurementListRow(
       data: mockEntryPos(DateTime(2023), 120, 80, 70),
     )));
     await tester.pumpAndSettle();
@@ -26,7 +26,7 @@ void main() {
   });
 
   testWidgets('add-measurement FAB has a semantic label', (tester) async {
-    await tester.pumpWidget(await materialApp(const NavigationActionButtons()));
+    await pumpApp(tester, await materialApp(const NavigationActionButtons()));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Add measurement'), findsOneWidget);
   });

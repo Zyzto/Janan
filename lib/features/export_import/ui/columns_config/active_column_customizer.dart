@@ -14,29 +14,40 @@ class ActiveColumnCustomizer extends StatelessWidget {
   const ActiveColumnCustomizer({super.key});
 
   @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      PresetSelector(),
-      ActivePresetBuilder(
-        builder: (context, preset) {
-          if (preset is! CustomPreset) return const SizedBox.shrink();
-          return SizedBox(
-            height: 400.0,
-            child: Stack(
-              children: [
-                PresetEditor(editor: preset),
-                Align(
-                  alignment: AlignmentDirectional.bottomEnd,
-                  child: _PresetEditButtons(preset: preset),
+  Widget build(BuildContext context) {
+    final exportSettings = context.exportSettings;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        exportSettings,
+        context.csvExportSettings,
+        context.pdfExportSettings,
+        context.excelExportSettings,
+      ]),
+      builder: (context, _) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PresetSelector(),
+          ActivePresetBuilder(
+            builder: (context, preset) {
+              if (preset is! CustomPreset) return const SizedBox.shrink();
+              return SizedBox(
+                height: 400.0,
+                child: Stack(
+                  children: [
+                    PresetEditor(editor: preset),
+                    Align(
+                      alignment: AlignmentDirectional.bottomEnd,
+                      child: _PresetEditButtons(preset: preset),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ],
       ),
-    ],
-  );
+    );
+  }
 }
 
 class _PresetEditButtons extends StatelessWidget {

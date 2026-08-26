@@ -19,7 +19,7 @@ void main() {
   testWidgets('shows empty card when the range has no readings', (tester) async {
     await binding.setSurfaceSize(const Size(400, 800));
 
-    await tester.pumpWidget(await appBaseWithData(const AppHome()));
+    await pumpApp(tester, await appBaseWithData(const AppHome()));
     await _pumpHome(tester);
 
     expect(find.byType(DashboardEmptyCard), findsOneWidget);
@@ -29,7 +29,7 @@ void main() {
   testWidgets('shows graph above list in phone mode', (tester) async {
     await binding.setSurfaceSize(const Size(400, 800));
 
-    await tester.pumpWidget(await appBaseWithData(
+    await pumpApp(tester, await appBaseWithData(
       const AppHome(),
       records: [
         mockRecord(sys: 120, dia: 80, pul: 70),
@@ -55,7 +55,7 @@ void main() {
   testWidgets('only shows graph in landscape more', (tester) async {
     await binding.setSurfaceSize(const Size(800, 400));
 
-    await tester.pumpWidget(await appBaseWithData(const AppHome(),
+    await pumpApp(tester, await appBaseWithData(const AppHome(),
       records: [mockRecord(sys: 123)],
     ));
     await _pumpHome(tester);
@@ -69,7 +69,7 @@ void main() {
   testWidgets('always uses the unified measurement list', (tester) async {
     await binding.setSurfaceSize(const Size(400, 800));
 
-    await tester.pumpWidget(await appBaseWithData(
+    await pumpApp(tester, await appBaseWithData(
       const AppHome(),
       settings: TestSettingsSeed(compactList: false),
       records: [mockRecord(sys: 120, dia: 80, pul: 70)],
@@ -87,7 +87,7 @@ void main() {
   testWidgets('landscape graph is wrapped in theming', (tester) async {
     await binding.setSurfaceSize(const Size(800, 400));
 
-    await tester.pumpWidget(await appBaseForScreen(const AppHome()));
+    await pumpApp(tester, await appBaseForScreen(const AppHome()));
     await _pumpHome(tester);
 
     expect(find.byType(HomeBpChart), findsOneWidget);
@@ -98,7 +98,7 @@ void main() {
   testWidgets('includes safe area in phone mode', (tester) async {
     await binding.setSurfaceSize(const Size(400, 800));
 
-    await tester.pumpWidget(await appBaseWithData(const AppHome()));
+    await pumpApp(tester, await appBaseWithData(const AppHome()));
     await _pumpHome(tester);
 
     expect(find.byType(SafeArea), findsAtLeast(1));
@@ -107,7 +107,7 @@ void main() {
   testWidgets('swap button cycles home charts', (tester) async {
     await binding.setSurfaceSize(const Size(400, 800));
 
-    await tester.pumpWidget(await appBaseWithData(
+    await pumpApp(tester, await appBaseWithData(
       const AppHome(),
       records: [
         mockRecord(sys: 120, dia: 80, pul: 70),

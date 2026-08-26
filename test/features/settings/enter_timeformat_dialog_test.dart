@@ -7,18 +7,18 @@ import '../../util.dart';
 void main() {
   group('EnterTimeFormatDialog', () {
     testWidgets('should initialize without errors', (tester) async {
-      await tester.pumpWidget(await materialApp(const EnterTimeFormatDialog(initialValue: 'yyyy-MM-dd HH:mm',)));
+      await pumpApp(tester, await materialApp(const EnterTimeFormatDialog(initialValue: 'yyyy-MM-dd HH:mm',)));
       expect(tester.takeException(), isNull);
       expect(find.byType(EnterTimeFormatDialog), findsOneWidget);
     });
     testWidgets('should prefill time format', (tester) async {
-      await tester.pumpWidget(await materialApp( const EnterTimeFormatDialog(initialValue: 'yyyy-MM-dd HH:mm',)));
+      await pumpApp(tester, await materialApp( const EnterTimeFormatDialog(initialValue: 'yyyy-MM-dd HH:mm',)));
       final textField = find.byType(TextField);
       expect(textField, findsOneWidget);
       expect(find.descendant(of: textField, matching: find.text('yyyy-MM-dd HH:mm')), findsOneWidget);
     });
     testWidgets('should show preview', (tester) async {
-      await tester.pumpWidget(await materialApp(EnterTimeFormatDialog(
+      await pumpApp(tester, await materialApp(EnterTimeFormatDialog(
           initialValue: 'yyyy-MM-dd HH:mm',
           previewTime: DateTime(2023, 7, 23, 8, 20),
         ),
@@ -32,16 +32,16 @@ void main() {
       expect(find.text('3rd quarter + July'), findsOneWidget);
     });
     testWidgets('should close page on close button pressed', (tester) async {
-      await tester.pumpWidget(await materialApp(const EnterTimeFormatDialog(initialValue: 'yyyy-MM-dd HH:mm',)));
+      await loadDialog(tester,
+        (context) => showTimeFormatPickerDialog(context, 'yyyy-MM-dd HH:mm', false),);
 
       expect(find.byType(EnterTimeFormatDialog), findsOneWidget);
-      expect(find.byIcon(Icons.close), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.close));
+      await dismissSafaeh(tester);
       await tester.pumpAndSettle();
       expect(find.byType(EnterTimeFormatDialog), findsNothing);
     });
     testWidgets('should not allow saving empty time formats', (tester) async {
-      await tester.pumpWidget(await materialApp(const EnterTimeFormatDialog(initialValue: 'yyyy-MM-dd HH:mm',)));
+      await pumpApp(tester, await materialApp(const EnterTimeFormatDialog(initialValue: 'yyyy-MM-dd HH:mm',)));
 
       await tester.enterText(find.byType(TextField), '');
       await tester.pumpAndSettle();
@@ -59,8 +59,7 @@ void main() {
       await loadDialog(tester,
               (context) async => result = await showTimeFormatPickerDialog(context, 'yyyy-MM-dd HH:mm', false),);
 
-      expect(find.byIcon(Icons.close), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.close));
+      await dismissSafaeh(tester);
       await tester.pumpAndSettle();
 
       expect(result, null);
@@ -70,7 +69,7 @@ void main() {
       await loadDialog(tester,
               (context) async => result = await showTimeFormatPickerDialog(context, 'yyyy-MM-dd HH:mm', false),);
 
-      expect(find.text('SAVE'), findsOneWidget);
+      await tester.ensureVisible(find.text('SAVE'));
       await tester.tap(find.text('SAVE'));
       await tester.pumpAndSettle();
 
@@ -84,7 +83,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'test text!');
       await tester.pumpAndSettle();
 
-      expect(find.text('SAVE'), findsOneWidget);
+      await tester.ensureVisible(find.text('SAVE'));
       await tester.tap(find.text('SAVE'));
       await tester.pumpAndSettle();
 

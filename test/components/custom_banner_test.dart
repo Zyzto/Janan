@@ -7,7 +7,7 @@ import '../util.dart';
 void main() {
   testWidgets('should show information and allow interaction', (tester) async {
     int callCount = 0;
-    await tester.pumpWidget(await materialApp(CustomBanner(
+    await pumpApp(tester, await materialApp(CustomBanner(
       content: const Text('custom banner text'),
       action: IconButton(
         icon: const Icon(Icons.add_circle_outline),
@@ -26,7 +26,7 @@ void main() {
   });
   testWidgets('should work after launched as MaterialBanner', (tester) async {
     int callCount = 0;
-    await tester.pumpWidget(await materialApp(Builder(
+    await pumpApp(tester, await materialApp(Builder(
       builder: (context) => IconButton(
           icon: const Icon(Icons.start),
           onPressed: () {

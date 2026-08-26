@@ -2,7 +2,10 @@ import 'package:blood_pressure_app/features/measurement_list/metric_info.dart';
 import 'package:blood_pressure_app/model/body_sex.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../util.dart';
+
 void main() {
+  setUp(loadTestTranslations);
   MetricInfo resolve(
     MetricKind kind,
     double current, {

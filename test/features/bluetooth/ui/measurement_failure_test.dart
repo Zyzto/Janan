@@ -9,7 +9,7 @@ import '../../../util.dart';
 void main() {
   testWidgets('should show everything and be interactive', (WidgetTester tester) async {
     int tapCount = 0;
-    await tester.pumpWidget(await materialApp(MeasurementFailure(
+    await pumpApp(tester, await materialApp(MeasurementFailure(
       onTap: () => tapCount++,
       reason: '',
     )));
@@ -29,7 +29,7 @@ void main() {
   });
 
   testWidgets('shows the failure reason', (WidgetTester tester) async {
-    await tester.pumpWidget(await materialApp(MeasurementFailure(
+    await pumpApp(tester, await materialApp(MeasurementFailure(
       onTap: () {},
       reason: 'Characteristic not found',
     )));

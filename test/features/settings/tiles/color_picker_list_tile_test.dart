@@ -7,7 +7,7 @@ import '../../../util.dart';
 
 void main() {
   testWidgets('should initialize without errors', (tester) async {
-    await tester.pumpWidget(await materialApp(ColorSelectionListTile(
+    await pumpApp(tester, await materialApp(ColorSelectionListTile(
       title: const Text('Test'),
       onMainColorChanged: (Color value) {
         assert(false, 'should not be called');
@@ -16,7 +16,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
   testWidgets('should preview color', (tester) async {
-    await tester.pumpWidget(await materialApp(ColorSelectionListTile(
+    await pumpApp(tester, await materialApp(ColorSelectionListTile(
       title: const Text('Test'),
       onMainColorChanged: (Color value) {
         assert(false, 'should not be called');
@@ -28,7 +28,7 @@ void main() {
             (p0) => p0.backgroundColor, 'display color', Colors.teal,),);
   });
   testWidgets('should show colorPicker on tap', (tester) async {
-    await tester.pumpWidget(await materialApp(ColorSelectionListTile(
+    await pumpApp(tester, await materialApp(ColorSelectionListTile(
       title: const Text('Test'),
       onMainColorChanged: (Color value) {
         assert(false, 'should not be called');
@@ -42,7 +42,7 @@ void main() {
   });
   testWidgets('should notify on color changed', (tester) async {
     int callCount = 0;
-    await tester.pumpWidget(await materialApp(ColorSelectionListTile(
+    await pumpApp(tester, await materialApp(ColorSelectionListTile(
       title: const Text('Test'),
       onMainColorChanged: (Color value) {
         callCount += 1;
@@ -62,7 +62,7 @@ void main() {
     expect(callCount, 1);
   });
   testWidgets('should hide color when transparent is selected', (tester) async {
-    await tester.pumpWidget(await materialApp(ColorSelectionListTile(
+    await pumpApp(tester, await materialApp(ColorSelectionListTile(
       title: const Text('Test'),
       onMainColorChanged: (Color value) {
         assert(false, 'should not be called');

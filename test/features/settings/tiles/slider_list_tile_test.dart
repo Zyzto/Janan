@@ -6,7 +6,7 @@ import '../../../util.dart';
 
 void main() {
   testWidgets('should not throw errors', (tester) async {
-    await tester.pumpWidget(await materialApp(SliderListTile(
+    await pumpApp(tester, await materialApp(SliderListTile(
       title: const Text('test title'),
       onChanged: (double newValue) {
         assert(false, 'should not be called');
@@ -16,7 +16,7 @@ void main() {
       max: 20,
     ),),);
     expect(tester.takeException(), isNull);
-    await tester.pumpWidget(await materialApp(SliderListTile(
+    await pumpApp(tester, await materialApp(SliderListTile(
       title: const Text('Very long title that could overflow'),
       onChanged: (double newValue) {
         assert(false, 'should not be called');
@@ -33,7 +33,7 @@ void main() {
   });
   testWidgets('should report value changes', (tester) async {
     int callCount = 0;
-    await tester.pumpWidget(await materialApp(SliderListTile(
+    await pumpApp(tester, await materialApp(SliderListTile(
       title: const Text('title'),
       onChanged: (double newValue) {
         callCount += 1;

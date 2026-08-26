@@ -7,7 +7,7 @@ import '../../../util.dart';
 
 void main() {
   testWidgets('shows looking progress before a meter is found', (tester) async {
-    await tester.pumpWidget(await materialApp(const BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(const BleLaunchSyncCard(
       progress: BleLaunchSyncProgress(
         phase: BleLaunchSyncPhase.scanning,
         deviceName: 'BM59',
@@ -23,7 +23,7 @@ void main() {
 
   testWidgets('offers pause while a sync is running', (tester) async {
     var paused = false;
-    await tester.pumpWidget(await materialApp(BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(BleLaunchSyncCard(
       progress: const BleLaunchSyncProgress(
         phase: BleLaunchSyncPhase.scanning,
         deviceName: 'BM59',
@@ -39,7 +39,7 @@ void main() {
 
   testWidgets('offers resume when sync is paused', (tester) async {
     var resumed = false;
-    await tester.pumpWidget(await materialApp(BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(BleLaunchSyncCard(
       progress: const BleLaunchSyncProgress(deviceName: 'BM59'),
       paused: true,
       onResume: () => resumed = true,
@@ -56,7 +56,7 @@ void main() {
 
   testWidgets('offers resume when the meter was not found', (tester) async {
     var resumed = false;
-    await tester.pumpWidget(await materialApp(BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(BleLaunchSyncCard(
       progress: const BleLaunchSyncProgress(
         phase: BleLaunchSyncPhase.done,
         result: BleLaunchSyncResult(status: BleLaunchSyncStatus.notFound),
@@ -72,7 +72,7 @@ void main() {
   });
 
   testWidgets('shows found meter and connect info', (tester) async {
-    await tester.pumpWidget(await materialApp(const BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(const BleLaunchSyncCard(
       progress: BleLaunchSyncProgress(
         phase: BleLaunchSyncPhase.connecting,
         deviceName: 'BM59',
@@ -86,7 +86,7 @@ void main() {
   });
 
   testWidgets('keeps the connect stage while looking for extra devices', (tester) async {
-    await tester.pumpWidget(await materialApp(const BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(const BleLaunchSyncCard(
       progress: BleLaunchSyncProgress(
         phase: BleLaunchSyncPhase.reading,
         deviceName: 'BM59',
@@ -101,7 +101,7 @@ void main() {
   });
 
   testWidgets('shows reading progress after the connection is open', (tester) async {
-    await tester.pumpWidget(await materialApp(const BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(const BleLaunchSyncCard(
       progress: BleLaunchSyncProgress(
         phase: BleLaunchSyncPhase.reading,
         deviceName: 'BM59',
@@ -114,7 +114,7 @@ void main() {
   });
 
   testWidgets('shows imported count and skipped duplicates', (tester) async {
-    await tester.pumpWidget(await materialApp(const BleLaunchSyncCard(
+    await pumpApp(tester, await materialApp(const BleLaunchSyncCard(
       progress: BleLaunchSyncProgress(
         phase: BleLaunchSyncPhase.done,
         deviceName: 'BM59',

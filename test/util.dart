@@ -20,6 +20,8 @@ import 'package:blood_pressure_app/model/med_cache.dart';
 import 'package:blood_pressure_app/model/storage/storage.dart';
 import 'package:blood_pressure_app/model/weight_unit.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/src/localization.dart';
+import 'package:easy_localization/src/translations.dart';
 import 'package:flutter/material.dart';
 import 'package:blood_pressure_app/core/repository/repository_providers.dart';
 import 'package:blood_pressure_app/core/settings/storage_providers.dart';
@@ -279,12 +281,20 @@ Future<void> disposeTestLogging() async {
   _loggingReady = false;
 }
 
+/// Load locale JSON into EasyLocalization so `.tr()` works in unit tests.
+void loadTestTranslations([Locale locale = const Locale('en')]) {
+  final file = File('assets/translations/${translationFileTag(locale)}.json');
+  final map = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
+  Localization.load(locale, translations: Translations(map));
+}
+
 Future<SettingsProviders> createTestSettings([TestSettingsSeed? seed]) async {
   await ensureTestLogging();
   try {
     await EasyLocalization.ensureInitialized();
   } catch (_) {}
   EasyLocalization.logger.enableBuildModes = [];
+  loadTestTranslations();
   final providers = await initializeAppSettings(storage: MemoryStorage());
   if (seed != null) await seed.apply(providers.controller);
   testSettingsController = providers.controller;
@@ -317,6 +327,7 @@ Widget _easyApp({
     supportedLocales: appSupportedLocales,
     fallbackLocale: const Locale('en'),
     startLocale: locale,
+    useFallbackTranslations: true,
     saveLocale: false,
     child: Builder(
       builder: (context) {
@@ -374,6 +385,7 @@ Future<Widget> materialApp(Widget child, {
   excelExportSettings ??= ExcelExportSettings();
   intervallStoreManager ??= IntervalStoreManager();
   exportColumnsManager ??= ExportColumnsManager();
+  final db = MockHealthStore();
   return _easyApp(
     child: child,
     settings: edadat,
@@ -386,6 +398,11 @@ Future<Widget> materialApp(Widget child, {
       excelExportSettingsProvider.overrideWithValue(excelExportSettings),
       intervalStoreManagerProvider.overrideWithValue(intervallStoreManager),
       exportColumnsManagerProvider.overrideWithValue(exportColumnsManager),
+      bloodPressureRepositoryProvider.overrideWithValue(db.bpRepo),
+      medicineRepositoryProvider.overrideWithValue(db.medRepo),
+      medicineIntakeRepositoryProvider.overrideWithValue(db.intakeRepo),
+      noteRepositoryProvider.overrideWithValue(db.noteRepo),
+      bodyweightRepositoryProvider.overrideWithValue(db.weightRepo),
     ],
   );
 }
@@ -575,12 +592,44 @@ Future<Widget> appBaseForScreen(Widget child,  {
   );
 }
 
+/// Phone-sized surface so Safaeh uses its phone sheet chrome in widget tests.
+void usePhoneTestSurface(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+Finder safaehConfirm() => find.byKey(const ValueKey('safaeh_confirm'));
+Finder safaehCancel() => find.byKey(const ValueKey('safaeh_cancel'));
+Finder safaehTextDone() => find.byKey(const ValueKey('safaeh_text_done'));
+
+Future<void> tapSafaehConfirm(WidgetTester tester) async {
+  final target = safaehConfirm().evaluate().isNotEmpty
+      ? safaehConfirm()
+      : safaehTextDone();
+  await tester.ensureVisible(target);
+  await tester.tap(target);
+}
+
+Future<void> dismissSafaeh(WidgetTester tester) async {
+  if (safaehCancel().evaluate().isNotEmpty) {
+    await tester.tap(safaehCancel());
+    return;
+  }
+  if (find.byIcon(Icons.close).evaluate().isNotEmpty) {
+    await tester.tap(find.byIcon(Icons.close));
+    return;
+  }
+  await tester.tapAt(const Offset(8, 8));
+}
+
 /// Open a dialog through a button press.
 Future<void> loadDialog(WidgetTester tester, void Function(BuildContext context) dialogStarter, {
   String dialogStarterText = 'X',
   TestSettingsSeed? settings,
 }) async {
-  await tester.pumpWidget(await appBase(
+  await pumpApp(tester, await appBase(
     Builder(builder: (context) => TextButton(onPressed: () => dialogStarter(context), child: Text(dialogStarterText)),),
     settings: settings,
   ),);
@@ -678,7 +727,7 @@ class _MockRepo<T> extends Repository<T> {
   }
 
   @override
-  Future<List<T>> get(DateRange range) async => data;
+  Future<List<T>> get(DateRange range) async => List<T>.of(data);
 
   @override
   Future<void> remove(T value) async {

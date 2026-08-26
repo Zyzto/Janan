@@ -8,7 +8,7 @@ import '../../../util.dart';
 void main() {
   testWidgets('saves entered values', (WidgetTester tester) async {
     final key = GlobalKey<WeightFormState>();
-    await tester.pumpWidget(await materialApp(WeightForm(key: key)));
+    await pumpApp(tester, await materialApp(WeightForm(key: key)));
 
     expect(find.text('Weight'), findsOneWidget);
     expect(find.text(WeightUnit.kg.name), findsOneWidget);
@@ -22,7 +22,7 @@ void main() {
 
   testWidgets('parses comma decimals', (WidgetTester tester) async {
     final key = GlobalKey<WeightFormState>();
-    await tester.pumpWidget(await materialApp(WeightForm(key: key)));
+    await pumpApp(tester, await materialApp(WeightForm(key: key)));
 
     await tester.enterText(find.byType(TextField), '72,5');
 
@@ -32,7 +32,7 @@ void main() {
 
   testWidgets('shows errors on bad inputs', (WidgetTester tester) async {
     final key = GlobalKey<WeightFormState>();
-    await tester.pumpWidget(await materialApp(WeightForm(key: key)));
+    await pumpApp(tester, await materialApp(WeightForm(key: key)));
 
     expect(find.text('Please enter a number'), findsNothing);
 
@@ -43,7 +43,7 @@ void main() {
   });
 
   testWidgets('loads initial values', (WidgetTester tester) async {
-    await tester.pumpWidget(await materialApp(WeightForm(
+    await pumpApp(tester, await materialApp(WeightForm(
       initialValue: WeightUnit.kg.store(123.45),
     )));
     await tester.pumpAndSettle();
@@ -52,7 +52,7 @@ void main() {
 
   testWidgets('fillForm uses the provided weight', (WidgetTester tester) async {
     final key = GlobalKey<WeightFormState>();
-    await tester.pumpWidget(await materialApp(WeightForm(
+    await pumpApp(tester, await materialApp(WeightForm(
       key: key,
       initialValue: WeightUnit.kg.store(10),
     )));
@@ -67,7 +67,7 @@ void main() {
 
   testWidgets('saves only filled inputs', (WidgetTester tester) async {
     final key = GlobalKey<WeightFormState>();
-    await tester.pumpWidget(await materialApp(WeightForm(key: key)));
+    await pumpApp(tester, await materialApp(WeightForm(key: key)));
     expect(key.currentState!.save(), isNull);
   });
 }

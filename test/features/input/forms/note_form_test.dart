@@ -9,7 +9,7 @@ import '../../settings/tiles/color_picker_list_tile_test.dart';
 void main() {
   testWidgets('saves entered text', (WidgetTester tester) async {
     final key = GlobalKey<NoteFormState>();
-    await tester.pumpWidget(await materialApp(NoteForm(key: key)));
+    await pumpApp(tester, await materialApp(NoteForm(key: key)));
     expect(find.text('Note (optional)'), findsOneWidget);
     expect(key.currentState!.validate(), true);
 
@@ -21,7 +21,7 @@ void main() {
 
   testWidgets('saves entered color and text', (WidgetTester tester) async {
     final key = GlobalKey<NoteFormState>();
-    await tester.pumpWidget(await materialApp(NoteForm(key: key)));
+    await pumpApp(tester, await materialApp(NoteForm(key: key)));
     expect(find.text('Note (optional)'), findsOneWidget);
     expect(key.currentState!.validate(), true);
 
@@ -35,7 +35,7 @@ void main() {
   });
 
   testWidgets('loads initial values', (WidgetTester tester) async {
-    await tester.pumpWidget(await materialApp(NoteForm(
+    await pumpApp(tester, await materialApp(NoteForm(
       initialValue: ('Some note text from test', Colors.cyan),
     )));
     await tester.pumpAndSettle();
@@ -45,7 +45,7 @@ void main() {
 
   testWidgets('saves only filled inputs', (WidgetTester tester) async {
     final key = GlobalKey<NoteFormState>();
-    await tester.pumpWidget(await materialApp(NoteForm(key: key)));
+    await pumpApp(tester, await materialApp(NoteForm(key: key)));
     expect(key.currentState!.save(), isNull);
   });
 
@@ -53,7 +53,7 @@ void main() {
     final v = ('Some note text from test', Colors.cyan);
 
     final key = GlobalKey<NoteFormState>();
-    await tester.pumpWidget(await materialApp(NoteForm(key: key, initialValue: v)));
+    await pumpApp(tester, await materialApp(NoteForm(key: key, initialValue: v)));
     expect(key.currentState!.save(), v);
   });
 }

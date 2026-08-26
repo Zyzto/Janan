@@ -11,7 +11,7 @@ import '../../../util.dart';
 void main() {
   testWidgets('should show everything and be interactive', (WidgetTester tester) async {
     int tapCount = 0;
-    await tester.pumpWidget(await materialApp(MeasurementSuccess(
+    await pumpApp(tester, await materialApp(MeasurementSuccess(
       onTap: () => tapCount++,
       data: BleMeasurementData(
         systolic: 123,
@@ -58,7 +58,7 @@ void main() {
   });
   testWidgets('hides elements correctly', (WidgetTester tester) async {
     int tapCount = 0;
-    await tester.pumpWidget(await materialApp(MeasurementSuccess(
+    await pumpApp(tester, await materialApp(MeasurementSuccess(
       onTap: () => tapCount++,
       data: BleMeasurementData(
         systolic: 123,

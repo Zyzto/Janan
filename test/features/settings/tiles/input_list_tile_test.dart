@@ -1,13 +1,13 @@
-import 'package:blood_pressure_app/components/input_dialog.dart';
 import 'package:blood_pressure_app/features/settings/tiles/input_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:safaeh/safaeh.dart';
 
 import '../../../util.dart';
 
 void main() {
   testWidgets('should show fields', (tester) async {
-    await tester.pumpWidget(await materialApp(InputListTile(
+    await pumpApp(tester, await materialApp(InputListTile(
       label: 'test title',
       value: 'initial',
       onSubmit: (String newValue) {
@@ -19,7 +19,8 @@ void main() {
     expect(find.text('initial'), findsOneWidget);
   });
   testWidgets('should allow canceling edit', (tester) async {
-    await tester.pumpWidget(await materialApp(InputListTile(
+    usePhoneTestSurface(tester);
+    await pumpApp(tester, await materialApp(InputListTile(
       label: 'test title',
       value: 'initial',
       onSubmit: (String newValue) {
@@ -27,18 +28,18 @@ void main() {
       },
     ),),);
 
-    expect(find.byType(InputDialog), findsNothing);
+    expect(find.byType(SafaehTextInputSheet), findsNothing);
     await tester.tap(find.byType(InputListTile));
     await tester.pumpAndSettle();
 
-    expect(find.byType(InputDialog), findsOneWidget);
-    await tester.tapAt(const Offset(0, 0));
+    expect(find.byType(SafaehTextInputSheet), findsOneWidget);
+    await dismissSafaeh(tester);
     await tester.pumpAndSettle();
 
-    expect(find.byType(InputDialog), findsNothing);
+    expect(find.byType(SafaehTextInputSheet), findsNothing);
   });
   testWidgets('should prefill value on edit', (tester) async {
-    await tester.pumpWidget(await materialApp(InputListTile(
+    await pumpApp(tester, await materialApp(InputListTile(
       label: 'test title',
       value: 'initial',
       onSubmit: (String newValue) {
@@ -53,8 +54,9 @@ void main() {
     expect(find.text('initial'), findsNWidgets(2));
   });
   testWidgets('should allow editing values', (tester) async {
+    usePhoneTestSurface(tester);
     int callCount = 0;
-    await tester.pumpWidget(await materialApp(InputListTile(
+    await pumpApp(tester, await materialApp(InputListTile(
       label: 'test title',
       value: 'initial',
       onSubmit: (String newValue) {
@@ -69,10 +71,10 @@ void main() {
 
     expect(find.byType(TextField), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'changed');
-    await tester.tap(find.text('OK'));
+    await tapSafaehConfirm(tester);
     await tester.pumpAndSettle();
 
-    expect(find.byType(InputDialog), findsNothing);
+    expect(find.byType(SafaehTextInputSheet), findsNothing);
     expect(callCount, 1);
   });
 }

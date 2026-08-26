@@ -12,7 +12,7 @@ void main() {
     final db = MockHealthStore();
     final bpRepo = db.bpRepo;
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       const AddEntryScreen(),
       bpRepo: bpRepo,
     ));
@@ -37,7 +37,7 @@ void main() {
   testWidgets('Updates on new med', (tester) async {
     final medRepo = MockMedRepo([]);
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       const AddEntryScreen(),
       medRepo: medRepo,
     ));

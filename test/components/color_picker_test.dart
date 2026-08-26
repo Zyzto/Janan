@@ -6,17 +6,16 @@ import '../util.dart';
 
 void main() {
   testWidgets('should initialize without errors', (tester) async {
-    await tester.pumpWidget(await materialApp(ColorPicker(onColorSelected: (color) {})));
-    await tester.pumpWidget(await materialApp(ColorPicker(availableColors: const [], onColorSelected: (color) {})));
-    await tester.pumpWidget(await materialApp(ColorPicker(showTransparentColor: false, onColorSelected: (color) {})));
-    await tester.pumpWidget(await materialApp(ColorPicker(circleSize: 15, onColorSelected: (color) {})));
-    await tester.pumpWidget(
-        await materialApp(ColorPicker(availableColors: const [], initialColor: Colors.red, onColorSelected: (color) {})),);
+    await pumpApp(tester, await materialApp(ColorPicker(onColorSelected: (color) {})));
+    await pumpApp(tester, await materialApp(ColorPicker(availableColors: const [], onColorSelected: (color) {})));
+    await pumpApp(tester, await materialApp(ColorPicker(showTransparentColor: false, onColorSelected: (color) {})));
+    await pumpApp(tester, await materialApp(ColorPicker(circleSize: 15, onColorSelected: (color) {})));
+    await pumpApp(tester, await materialApp(ColorPicker(availableColors: const [], initialColor: Colors.red, onColorSelected: (color) {})),);
     expect(tester.takeException(), isNull);
   });
   testWidgets('should report correct picked color', (tester) async {
     int onColorSelectedCallCount = 0;
-    await tester.pumpWidget(await materialApp(ColorPicker(onColorSelected: (color) {
+    await pumpApp(tester, await materialApp(ColorPicker(onColorSelected: (color) {
       expect(color, Colors.blue);
       onColorSelectedCallCount += 1;
     },),),);

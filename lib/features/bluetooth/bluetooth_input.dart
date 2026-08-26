@@ -136,6 +136,7 @@ class BluetoothInputState extends ConsumerState<BluetoothInput> with Loggable {
     try {
       await _stopBackgroundSync();
       if (!mounted) return;
+      hasImported = false;
       setState(() => isActive = true);
     } finally {
       _starting = false;
@@ -167,7 +168,6 @@ class BluetoothInputState extends ConsumerState<BluetoothInput> with Loggable {
   }
 
   void _returnToIdle() async {
-    hasImported = false;
     _autoStarted = false;
     // No need to show wait in the UI.
     if (isActive) {
@@ -200,6 +200,7 @@ class BluetoothInputState extends ConsumerState<BluetoothInput> with Loggable {
       return;
     }
     logDebug('_maybeAutostart: starting bluetooth input');
+    hasImported = false;
     setState(() => isActive = true);
   }
 
@@ -312,7 +313,8 @@ class BluetoothInputState extends ConsumerState<BluetoothInput> with Loggable {
           if (state is BleReadSuccess) {
             if (bluetoothImportMode.isAutomatic) {
               if (!hasImported) {
-                setState(() => hasImported = true);
+                hasImported = true;
+                setState(() {});
                 unawaited(_importMeasurements([state.data]));
               }
             } else {
@@ -321,7 +323,8 @@ class BluetoothInputState extends ConsumerState<BluetoothInput> with Loggable {
             }
           } else if (state is BleReadWeightSuccess) {
             if (!hasImported) {
-              setState(() => hasImported = true);
+              hasImported = true;
+              setState(() {});
               if (bluetoothImportMode.isAutomatic || widget.onWeight == null) {
                 unawaited(_importWeight(state.data));
               } else {
@@ -331,7 +334,8 @@ class BluetoothInputState extends ConsumerState<BluetoothInput> with Loggable {
               }
             }
           } else if (state is BleReadMultiple && bluetoothImportMode.isAutomatic && !hasImported) {
-            setState(() => hasImported = true);
+            hasImported = true;
+            setState(() {});
             unawaited(_importMeasurements(
               bluetoothImportMode == BluetoothMeasurementImportMode.all
                   ? state.data
@@ -397,8 +401,6 @@ class BluetoothInputState extends ConsumerState<BluetoothInput> with Loggable {
     try {
       final saved = await context.bpRepo.get(DateRange.all());
       incoming = newBleMeasurements(data, saved);
-    } on StateError {
-      incoming = newBleMeasurements(data, const []);
     } catch (error, stack) {
       logSevere('_importMeasurements failed', error: error, stackTrace: stack);
       if (!mounted) return;

@@ -15,25 +15,20 @@ import 'package:blood_pressure_app/model/bluetooth_measurement_import_mode.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:blood_pressure_app/domain/domain.dart';
-import 'package:mockito/mockito.dart';
-
 import '../../helpers/when_listen.dart';
 import '../../util.dart';
 
-class _MockBluetoothCubit extends Mock implements BluetoothCubit {}
+class _MockBluetoothCubit extends StubBluetoothCubit {}
 
-class _MockDeviceScanCubit extends Mock implements DeviceScanCubit {}
+class _MockDeviceScanCubit extends StubDeviceScanCubit {}
 
-class _MockBleReadCubit extends Mock implements BleReadCubit {
-  _MockBleReadCubit([this.deviceName]);
-
-  @override
-  final String? deviceName;
+class _MockBleReadCubit extends StubBleReadCubit {
+  _MockBleReadCubit([super.deviceName]);
 }
 
-class _MockBluetoothCubitFailingEnable extends Mock implements BluetoothCubit {
+class _MockBluetoothCubitFailingEnable extends StubBluetoothCubit {
   @override
-  Future<bool> enableBluetooth() async {
+  Future<bool?> enableBluetooth() async {
     throw 'enableBluetooth called';
   }
 }
@@ -65,7 +60,7 @@ void main() {
     );
 
     final List<BloodPressureRecord> reads = [];
-    await tester.pumpWidget(await materialApp(BluetoothInput(
+    await pumpApp(tester, await materialApp(BluetoothInput(
       manager: MockBluetoothManager(),
       onMeasurement: reads.add,
       onAllMeasurements: (_) {},
@@ -108,7 +103,7 @@ void main() {
     );
 
     final List<BloodPressureRecord> reads = [];
-    await tester.pumpWidget(await materialApp(BluetoothInput(
+    await pumpApp(tester, await materialApp(BluetoothInput(
       manager: MockBluetoothManager(),
       onMeasurement: reads.add,
       onAllMeasurements: (_) {},
@@ -142,7 +137,7 @@ void main() {
         return _MockDeviceScanCubit();
       },
     );
-    await tester.pumpWidget(await materialApp(widget));
+    await pumpApp(tester, await materialApp(widget));
     await tester.pump();
     BluetoothInputState widgetState = tester.state(find.byWidget(widget));
     expect(tester.takeException(), isNull);
@@ -167,7 +162,7 @@ void main() {
         return _MockDeviceScanCubit();
       },
     );
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       widget,
       settings: TestSettingsSeed(autostartBluetoothInput: false),
     ));
@@ -190,7 +185,7 @@ void main() {
       onAllMeasurements: (_) {},
       bluetoothCubit: () => bluetoothCubit,
     );
-    await tester.pumpWidget(await materialApp(widget, settings: settings));
+    await pumpApp(tester, await materialApp(widget, settings: settings));
     await tester.pump();
     BluetoothInputState widgetState = tester.state(find.byWidget(widget));
     expect(widgetState.isActive, true);
@@ -233,14 +228,10 @@ void main() {
       bluetoothCubit: () => bluetoothCubit,
       deviceScanCubit: () => deviceScanCubit
     );
-    await tester.pumpWidget(await materialApp(widget, settings: settings));
-    await tester.pump();
-
-    BluetoothInputState widgetState = tester.state(find.byWidget(widget));
-    expect(widgetState.isActive, true);
-    expect(widgetState.hasImported, true);
+    await pumpApp(tester, await materialApp(widget, settings: settings));
     await tester.pumpAndSettle();
-    expect(reads.length, 1);
+    expect(reads, hasLength(1));
+    expect(reads.first.sys?.mmHg, 123);
   });
 
   testWidgets('shows connecting progress for a named meter', (tester) async {
@@ -260,7 +251,7 @@ void main() {
       initialState: BleReadInProgress(),
     );
 
-    await tester.pumpWidget(await materialApp(BluetoothInput(
+    await pumpApp(tester, await materialApp(BluetoothInput(
       manager: MockBluetoothManager(),
       onMeasurement: (_) {},
       onAllMeasurements: (_) {},
@@ -299,7 +290,7 @@ void main() {
     final weights = MockBodyweightRepository();
     final settings = TestSettingsSeed();
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BluetoothInput(
         manager: MockBluetoothManager(),
         onMeasurement: (_) {},
@@ -349,7 +340,7 @@ void main() {
       weight: Weight.kg(102.3),
     ));
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BluetoothInput(
         manager: MockBluetoothManager(),
         onMeasurement: (_) {},
@@ -392,7 +383,7 @@ void main() {
     final weights = MockBodyweightRepository();
     final reviewed = <BodyweightRecord>[];
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BluetoothInput(
         manager: MockBluetoothManager(),
         onMeasurement: (_) {},
@@ -442,7 +433,7 @@ void main() {
     );
     final reads = <BloodPressureRecord>[];
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BluetoothInput(
         manager: MockBluetoothManager(),
         onMeasurement: reads.add,

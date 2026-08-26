@@ -8,7 +8,7 @@ import '../../util.dart';
 
 void main() {
   testWidgets('writes height, birth year, sex, and athlete mode', (tester) async {
-    await tester.pumpWidget(await materialApp(const BodyProfileScreen()));
+    await pumpApp(tester, await materialApp(const BodyProfileScreen()));
 
     await tester.enterText(find.byType(TextField).at(0), '180');
     await tester.enterText(find.byType(TextField).at(1), '1991');

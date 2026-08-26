@@ -6,17 +6,10 @@ import 'package:blood_pressure_app/features/bluetooth/ui/closed_bluetooth_input.
 import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-
 import '../../../helpers/when_listen.dart';
 import '../../../util.dart';
 
-class MockBluetoothCubit extends Mock implements BluetoothCubit {
-  @override
-  Future<bool> enableBluetooth() async => true;
-  @override
-  Future<void> forceRefresh() async {}
-}
+class MockBluetoothCubit extends StubBluetoothCubit {}
 
 void main() {
   testWidgets('should show states correctly', (WidgetTester tester) async {
@@ -26,7 +19,7 @@ void main() {
     whenListen(cubit, states.stream, initialState: BluetoothStateInitial());
 
     int startCount = 0;
-    await tester.pumpWidget(await materialApp(ClosedBluetoothInput(
+    await pumpApp(tester, await materialApp(ClosedBluetoothInput(
       bluetoothCubit: cubit,
       onStarted: () {
         startCount++;
@@ -73,7 +66,7 @@ void main() {
     whenListen(cubit, const Stream<BluetoothState>.empty(),
         initialState: BluetoothStateReady());
 
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       ClosedBluetoothInput(
         bluetoothCubit: cubit,
         onStarted: () {},

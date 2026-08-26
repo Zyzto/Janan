@@ -7,7 +7,7 @@ import '../../../util.dart';
 void main() {
   testWidgets('saves entered values', (WidgetTester tester) async {
     final key = GlobalKey<BloodPressureFormState>();
-    await tester.pumpWidget(await materialApp(BloodPressureForm(key: key)));
+    await pumpApp(tester, await materialApp(BloodPressureForm(key: key)));
     await tester.pumpAndSettle();
     expect(find.text('Systolic'), findsOneWidget);
     expect(find.text('Diastolic'), findsOneWidget);
@@ -25,7 +25,7 @@ void main() {
 
   testWidgets('shows errors on bad inputs', (WidgetTester tester) async {
     final key = GlobalKey<BloodPressureFormState>();
-    await tester.pumpWidget(await materialApp(BloodPressureForm(key: key)));
+    await pumpApp(tester, await materialApp(BloodPressureForm(key: key)));
     expect(find.text('Please enter a number'), findsNothing);
 
     await tester.enterText(find.byType(TextField).first, '..,..');
@@ -73,7 +73,7 @@ void main() {
   });
 
   testWidgets('loads initial values', (WidgetTester tester) async {
-    await tester.pumpWidget(await materialApp(BloodPressureForm(
+    await pumpApp(tester, await materialApp(BloodPressureForm(
       initialValue: (sys: 123, dia: 67, pul: 89),
     )));
     await tester.pumpAndSettle();

@@ -85,7 +85,7 @@ void main() {
     ) async {
       final older = DateTime.now().subtract(const Duration(hours: 4));
       final newer = DateTime.now().subtract(const Duration(hours: 1));
-      await tester.pumpWidget(await appBaseWithData(
+      await pumpApp(tester, await appBaseWithData(
         const StatisticsScreen(),
         records: [
           mockRecord(time: older, sys: 100, dia: 60, pul: 62),
@@ -131,7 +131,7 @@ void main() {
       final t1 = DateTime.now().subtract(const Duration(days: 2));
       final t2 = DateTime.now().subtract(const Duration(days: 1));
       final t3 = DateTime.now();
-      await tester.pumpWidget(await appBaseWithData(
+      await pumpApp(tester, await appBaseWithData(
         const StatisticsScreen(),
         records: [
           mockRecord(time: t1, sys: 122, dia: 87, pul: 65),
@@ -180,7 +180,7 @@ void main() {
     testWidgets('hides change chips when there is no previous window', (
       tester,
     ) async {
-      await tester.pumpWidget(await appBaseWithData(
+      await pumpApp(tester, await appBaseWithData(
         const StatisticsScreen(),
         records: [
           mockRecord(sys: 120, dia: 80, pul: 70),
@@ -193,7 +193,7 @@ void main() {
     });
 
     testWidgets('empty range shows empty card not charts', (tester) async {
-      await tester.pumpWidget(await appBaseWithData(
+      await pumpApp(tester, await appBaseWithData(
         const StatisticsScreen(),
         intervallStoreManager: _lifetimeStats(),
       ));
@@ -207,7 +207,7 @@ void main() {
     });
 
     testWidgets('range pills are not part of the statistics page', (tester) async {
-      await tester.pumpWidget(await appBaseWithData(
+      await pumpApp(tester, await appBaseWithData(
         const StatisticsScreen(),
         intervallStoreManager: _lifetimeStats(),
       ));
@@ -242,7 +242,7 @@ void main() {
         end: TimeOfDay(hour: 12, minute: 0),
       );
 
-      await tester.pumpWidget(await appBaseWithData(
+      await pumpApp(tester, await appBaseWithData(
         const StatisticsScreen(),
         records: [
           mockRecord(time: morning, sys: 118, dia: 76, pul: 68),

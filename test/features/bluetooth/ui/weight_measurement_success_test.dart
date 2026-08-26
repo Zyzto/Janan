@@ -13,7 +13,7 @@ void main() {
   );
 
   testWidgets('shows composition when profile and impedance are present', (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       WeightMeasurementSuccess(onTap: () {}, data: data),
       settings: TestSettingsSeed(
         bodyHeightCm: 180,
@@ -32,7 +32,7 @@ void main() {
   });
 
   testWidgets('prompts for a profile when impedance is present without one', (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       WeightMeasurementSuccess(onTap: () {}, data: data),
     ));
     expect(find.text('Body fat'), findsNothing);
@@ -40,7 +40,7 @@ void main() {
   });
 
   testWidgets('hides composition when the scale sent no impedance', (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       WeightMeasurementSuccess(
         onTap: () {},
         data: BleWeightData(kg: 102.3, time: DateTime(2026, 8, 24)),

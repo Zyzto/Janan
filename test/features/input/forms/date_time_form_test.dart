@@ -9,7 +9,7 @@ void main() {
   testWidgets('saves entered values', (WidgetTester tester) async {
     final key = GlobalKey<DateTimeFormState>();
     final initialTime = DateTime(2025,02,28,10,10);
-    await tester.pumpWidget(await materialApp(DateTimeForm(key: key, initialValue: initialTime)));
+    await pumpApp(tester, await materialApp(DateTimeForm(key: key, initialValue: initialTime)));
     expect(find.text('Date'), findsOneWidget);
     expect(find.text('Time'), findsOneWidget);
     expect(key.currentState!.validate(), true);
@@ -57,7 +57,7 @@ void main() {
   testWidgets('shows errors on bad inputs', (WidgetTester tester) async {
     final key = GlobalKey<DateTimeFormState>();
     final initialTime = DateTime.now();
-    await tester.pumpWidget(await materialApp(DateTimeForm(key: key, initialValue: initialTime)));
+    await pumpApp(tester, await materialApp(DateTimeForm(key: key, initialValue: initialTime)));
     expect(find.text('The selected time is in the future. You can turn off this validation in the settings.'), findsNothing);
 
     await tester.tap(find.text(DateFormat('HH:mm').format(initialTime)));
@@ -84,7 +84,7 @@ void main() {
     final key = GlobalKey<DateTimeFormState>();
     final initialTime = DateTime(2025,02,28,10,10);
     final newTime = DateTime(2022,11,1,2,3);
-    await tester.pumpWidget(await materialApp(DateTimeForm(key: key, initialValue: initialTime)));
+    await pumpApp(tester, await materialApp(DateTimeForm(key: key, initialValue: initialTime)));
 
     expect(find.text(DateFormat('yyyy-MM-dd').format(initialTime)), findsOneWidget);
     expect(find.text(DateFormat('HH:mm').format(initialTime)), findsOneWidget);

@@ -16,7 +16,7 @@ void main() {
     final interval = IntervalStorage();
     interval.changeStepSize(TimeStep.lifetime);
 
-    await tester.pumpWidget(await appBaseWithData(
+    await pumpApp(tester, await appBaseWithData(
       weights: [
         BodyweightRecord(time: DateTime(2001), weight: Weight.kg(123.0)),
         BodyweightRecord(time: DateTime(2003), weight: Weight.kg(122.1)),
@@ -39,16 +39,16 @@ void main() {
     expect(find.byIcon(Icons.delete), findsNothing);
 
     expect(
-      tester.getCenter(find.textContaining('2003')).dy,
-      lessThan(tester.getCenter(find.textContaining('2002')).dy),
+      tester.getCenter(find.text('122.1')).dy,
+      lessThan(tester.getCenter(find.text('7000.12')).dy),
     );
     expect(
-      tester.getCenter(find.textContaining('2002')).dy,
-      lessThan(tester.getCenter(find.textContaining('2001')).dy),
+      tester.getCenter(find.text('7000.12')).dy,
+      lessThan(tester.getCenter(find.text('123')).dy),
     );
     expect(
-      tester.getCenter(find.textContaining('2001')).dy,
-      lessThan(tester.getCenter(find.textContaining('2000')).dy),
+      tester.getCenter(find.text('123')).dy,
+      lessThan(tester.getCenter(find.text('70')).dy),
     );
   });
 
@@ -58,7 +58,7 @@ void main() {
     final repo = MockBodyweightRepository();
     await repo.add(BodyweightRecord(time: DateTime(2001), weight: Weight.kg(123.0)));
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       weightRepo: repo,
       intervallStoreManager: IntervalStoreManager(mainPage: interval),
       const WeightList(rangeType: IntervalStoreManagerLocation.mainPage),
@@ -77,7 +77,7 @@ void main() {
     final repo = MockBodyweightRepository();
     await repo.add(BodyweightRecord(time: DateTime(2001), weight: Weight.kg(123.0)));
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       weightRepo: repo,
       intervallStoreManager: IntervalStoreManager(mainPage: interval),
       const WeightList(rangeType: IntervalStoreManagerLocation.mainPage),
@@ -99,7 +99,7 @@ void main() {
     expect(find.text('Confirm deletion'), findsOneWidget);
     expect(find.text('OK'), findsOneWidget);
 
-    await tester.tap(find.text('OK'));
+    await tapSafaehConfirm(tester);
     await tester.pumpAndSettle();
     await tester.pumpAndSettle();
 
@@ -114,7 +114,7 @@ void main() {
     final repo = MockBodyweightRepository();
     await repo.add(BodyweightRecord(time: DateTime(2001), weight: Weight.kg(123.0)));
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       weightRepo: repo,
       intervallStoreManager: IntervalStoreManager(mainPage: interval),
       settings: TestSettingsSeed(confirmDeletion: false),
@@ -140,7 +140,7 @@ void main() {
     final repo = MockBodyweightRepository();
     await repo.add(BodyweightRecord(time: DateTime(2001), weight: Weight.kg(123.0)));
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       weightRepo: repo,
       intervallStoreManager: IntervalStoreManager(mainPage: interval),
       settings: TestSettingsSeed(weightUnit: WeightUnit.lbs),
@@ -149,7 +149,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('123'), findsNothing);
-    expect(find.text('55.79'), findsOneWidget);
+    expect(find.text('271.17'), findsOneWidget);
     expect(find.text('LBS'), findsOneWidget);
   });
 
@@ -157,7 +157,7 @@ void main() {
     final interval = IntervalStorage();
     interval.changeStepSize(TimeStep.lifetime);
 
-    await tester.pumpWidget(await appBaseWithData(
+    await pumpApp(tester, await appBaseWithData(
       weights: [
         BodyweightRecord(time: DateTime(2002), weight: Weight.kg(80.0)),
         BodyweightRecord(time: DateTime(2001), weight: Weight.kg(81.0)),
@@ -176,7 +176,7 @@ void main() {
     final interval = IntervalStorage();
     interval.changeStepSize(TimeStep.lifetime);
 
-    await tester.pumpWidget(await appBaseWithData(
+    await pumpApp(tester, await appBaseWithData(
       weights: [
         BodyweightRecord(time: DateTime(2002), weight: Weight.kg(80.0)),
         BodyweightRecord(time: DateTime(2001), weight: Weight.kg(81.0)),
@@ -200,7 +200,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       Align(
         alignment: Alignment.topCenter,
         child: WeightListRow(

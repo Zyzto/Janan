@@ -52,7 +52,7 @@ void main() {
       ),
     ];
 
-    await tester.pumpWidget(await materialApp(MeasurementMultiple(
+    await pumpApp(tester, await materialApp(MeasurementMultiple(
       onClosed: () => tapCount++,
       onSelect: selected.add,
       onSelectAll: (_) {},
@@ -101,7 +101,7 @@ void main() {
     ];
     List<BleMeasurementData>? importedAll;
 
-    await tester.pumpWidget(await materialApp(MeasurementMultiple(
+    await pumpApp(tester, await materialApp(MeasurementMultiple(
       onClosed: () {},
       onSelect: (_) {},
       onSelectAll: (data) => importedAll = data,
@@ -136,7 +136,7 @@ void main() {
     );
 
     List<BleMeasurementData>? imported;
-    await tester.pumpWidget(await materialApp(MeasurementMultiple(
+    await pumpApp(tester, await materialApp(MeasurementMultiple(
       onClosed: () {},
       onSelect: (_) {},
       onSelectAll: (data) => imported = data,

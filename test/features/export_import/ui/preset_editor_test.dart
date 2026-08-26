@@ -17,7 +17,7 @@ void main() {
     ]);
     final onUpdate = Completer();
     editor.addListener(onUpdate.complete);
-    await tester.pumpWidget(await materialApp(PresetEditor(editor: editor)));
+    await pumpApp(tester, await materialApp(PresetEditor(editor: editor)));
     expect(editor.columns[0], NativeColumn.systolic.internalIdentifier);
     expect(editor.columns[1], NativeColumn.diastolic.internalIdentifier);
 
@@ -41,7 +41,7 @@ void main() {
       NativeColumn.systolic.internalIdentifier,
       NativeColumn.diastolic.internalIdentifier,
     ]);
-    await tester.pumpWidget(await materialApp(PresetEditor(editor: editor)));
+    await pumpApp(tester, await materialApp(PresetEditor(editor: editor)));
 
     expect(editor.columns, hasLength(2));
     await tester.tap(find.byIcon(Icons.remove_circle_outline).first);
@@ -51,7 +51,7 @@ void main() {
 
   testWidgets('can add columns', (tester) async {
     final editor = CustomPreset([]);
-    await tester.pumpWidget(await materialApp(PresetEditor(editor: editor)));
+    await pumpApp(tester, await materialApp(PresetEditor(editor: editor)));
     expect(editor.columns, isEmpty);
     expect(find.byType(Dialog), findsNothing);
     expect(find.text('Pulse'), findsNothing);
@@ -70,7 +70,7 @@ void main() {
       NativeColumn.systolic.internalIdentifier,
       NativeColumn.systolic.internalIdentifier,
     ]);
-    await tester.pumpWidget(await materialApp(PresetEditor(editor: editor)));
+    await pumpApp(tester, await materialApp(PresetEditor(editor: editor)));
 
     expect(editor.columns, hasLength(2));
     await tester.tap(find.byIcon(Icons.remove_circle_outline).first);

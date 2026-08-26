@@ -10,7 +10,7 @@ import '../../util.dart';
 
 void main() {
   testWidgets("doesn't throw when empty" , (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       const ClockBpGraph(measurements: []),
     ));
     await tester.pump();
@@ -20,7 +20,7 @@ void main() {
   });
   testWidgets('[gold] renders sample data like expected in light mode', (tester) async {
     final rng = Random(1234);
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       ClockBpGraph(measurements: [
         for (int i = 0; i < 50; i++)
           mockRecord(
@@ -36,7 +36,7 @@ void main() {
   }, tags: 'gold');
   testWidgets('[gold] renders sample data like expected in dark mode', (tester) async {
     final rng = Random(1234);
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       Theme(
         data: ThemeData.dark(useMaterial3: true),
         child: ClockBpGraph(measurements: [

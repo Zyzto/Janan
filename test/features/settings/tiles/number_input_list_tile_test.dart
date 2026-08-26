@@ -7,7 +7,7 @@ import '../../../util.dart';
 
 void main() {
   testWidgets('should show fields', (tester) async {
-    await tester.pumpWidget(await materialApp(NumberInputListTile(
+    await pumpApp(tester, await materialApp(NumberInputListTile(
       label: 'test title',
       value: 15,
       onParsableSubmit: (double newValue) {
@@ -19,7 +19,7 @@ void main() {
     expect(find.text('15'), findsOneWidget);
   });
   testWidgets('should allow canceling edit', (tester) async {
-    await tester.pumpWidget(await materialApp(NumberInputListTile(
+    await pumpApp(tester, await materialApp(NumberInputListTile(
       label: 'test title',
       value: 15,
       onParsableSubmit: (double newValue) {
@@ -38,7 +38,7 @@ void main() {
     expect(find.byType(InputDialog), findsNothing);
   });
   testWidgets('should prefill value on edit', (tester) async {
-    await tester.pumpWidget(await materialApp(NumberInputListTile(
+    await pumpApp(tester, await materialApp(NumberInputListTile(
       label: 'test title',
       value: 15,
       onParsableSubmit: (double newValue) {
@@ -54,7 +54,7 @@ void main() {
   });
   testWidgets('should allow editing values', (tester) async {
     int callCount = 0;
-    await tester.pumpWidget(await materialApp(NumberInputListTile(
+    await pumpApp(tester, await materialApp(NumberInputListTile(
       label: 'test title',
       value: 15,
       onParsableSubmit: (double newValue) {

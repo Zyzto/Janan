@@ -8,6 +8,8 @@ import 'package:flutter_settings_framework/flutter_settings_framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../util.dart';
+
 Future<Widget> _tourApp(Widget child) async {
   SharedPreferences.setMockInitialValues({});
   try {
@@ -48,7 +50,7 @@ String _ctaLabel(WidgetTester tester) {
 
 void main() {
   testWidgets('first-run shows Skip and Get started on the last page', (tester) async {
-    await tester.pumpWidget(await _tourApp(const OnboardingScreen(firstRun: true)));
+    await pumpApp(tester, await _tourApp(const OnboardingScreen(firstRun: true)));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -70,7 +72,7 @@ void main() {
   });
 
   testWidgets('replay shows Close and Done on the last page', (tester) async {
-    await tester.pumpWidget(await _tourApp(const OnboardingScreen(firstRun: false)));
+    await pumpApp(tester, await _tourApp(const OnboardingScreen(firstRun: false)));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 

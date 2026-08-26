@@ -10,8 +10,7 @@ import '../../util.dart';
 void main() {
   testWidgets('Shows field customizer when relevant', (tester) async {
     final settings = ExportSettings(exportFormat: ExportFormat.csv);
-    await tester.pumpWidget(
-        await materialApp(ExportImportScreen(), exportSettings: settings));
+    await pumpApp(tester, await materialApp(ExportImportScreen(), exportSettings: settings));
 
     await tester.pumpAndSettle();
     expect(find.byType(ActiveColumnCustomizer), findsOneWidget);
@@ -30,7 +29,7 @@ void main() {
   });
 
   testWidgets('Shows export/import documentation from the app bar action', (tester) async {
-    await tester.pumpWidget(await materialApp(ExportImportScreen()));
+    await pumpApp(tester, await materialApp(ExportImportScreen()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('How to use export/import'));

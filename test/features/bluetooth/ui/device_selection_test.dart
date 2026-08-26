@@ -39,7 +39,7 @@ void main() {
     final dev = MockBluetoothDevice(MockCentralManager(), DiscoveredEventArgs(MockPeripheral('00000000-0000-0000-0000-001234567890'), -1, MockAdvertisement('Test device with long name (No.124356)')));
 
     final List<BluetoothDevice> accepted = [];
-    await tester.pumpWidget(await materialApp(DeviceSelection(
+    await pumpApp(tester, await materialApp(DeviceSelection(
       scanResults: [ dev ],
       onAccepted: accepted.add,
     )));
@@ -61,7 +61,7 @@ void main() {
   testWidgets('Shows multiple elements', (WidgetTester tester) async {
     BluetoothDevice getDev(int i) => MockBluetoothDevice(MockCentralManager(), DiscoveredEventArgs(MockPeripheral('00000000-0000-0000-0000-00123456789$i'), -1, MockAdvertisement('dev$i')));
 
-    await tester.pumpWidget(await materialApp(DeviceSelection(
+    await pumpApp(tester, await materialApp(DeviceSelection(
       scanResults: [
         getDev(1),
         getDev(2),
@@ -79,7 +79,7 @@ void main() {
   testWidgets('Handles long lists correctly', (WidgetTester tester) async {
     BluetoothDevice getDev(int i) => MockBluetoothDevice(MockCentralManager(), DiscoveredEventArgs(MockPeripheral('00000000-0000-0000-0000-001234567${i.toString().padLeft(3,'0')}'), -1, MockAdvertisement('dev$i')));
 
-    await tester.pumpWidget(await materialApp(ListView(
+    await pumpApp(tester, await materialApp(ListView(
       children: [
         DeviceSelection(
           scanResults: [
@@ -115,7 +115,7 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(await materialApp(DeviceSelection(
+    await pumpApp(tester, await materialApp(DeviceSelection(
       scanResults: [getDev('X4 Smart')],
       otherDevices: [getDev('Headphones')],
       isScanning: false,
@@ -141,7 +141,7 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(await materialApp(DeviceSelection(
+    await pumpApp(tester, await materialApp(DeviceSelection(
       scanResults: [getDev('X4 Smart'), getDev('BM 59'), getDev('eufy T9147')],
       onAccepted: (dev) => fail('No entry tapped'),
     )));
@@ -169,7 +169,7 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(await materialApp(DeviceSelection(
+    await pumpApp(tester, await materialApp(DeviceSelection(
       expand: true,
       scanResults: [
         for (int i = 1; i < 20; i++) getDev(i),

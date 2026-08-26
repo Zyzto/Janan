@@ -12,7 +12,7 @@ void main() {
   testWidgets('Shows warn banner during dangerous configurations', (tester) async {
     final exportSettings = ExportSettings(exportFormat: ExportFormat.csv);
     final csvSettings = CsvExportSettings(activePreset: ExportPreset.appDefault.id);
-    await tester.pumpWidget(await materialApp(ExportWarnBanner(),
+    await pumpApp(tester, await materialApp(ExportWarnBanner(),
       exportSettings: exportSettings,
       csvExportSettings: csvSettings,
     ));

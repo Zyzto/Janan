@@ -12,7 +12,7 @@ import '../../util.dart';
 
 void main() {
   testWidgets('respects bottomAppBars', (tester) async {
-    await tester.pumpWidget(await appBase(const AddEntryDialog(),
+    await pumpApp(tester, await appBase(const AddEntryDialog(),
       settings: TestSettingsSeed(bottomAppBars: false),
     ));
     final initialHeights = tester.getCenter(find.byType(AppBar)).dy;
@@ -24,7 +24,7 @@ void main() {
   });
 
   testWidgets('should show everything on initial page', (tester) async {
-    await tester.pumpWidget(await appBase(const AddEntryDialog()));
+    await pumpApp(tester, await appBase(const AddEntryDialog()));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
@@ -37,7 +37,7 @@ void main() {
     expect(find.byType(ColorSelectionListTile), findsOneWidget);
   },);
   testWidgets('should prefill initialRecord values', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       AddEntryDialog(
         initialRecord: mockEntryPos(
           DateTime.now(), 123, 56, 43, 'Test note', Colors.teal,
@@ -56,7 +56,7 @@ void main() {
     tester.widget<ColorSelectionListTile>(find.byType(ColorSelectionListTile)).initialColor == Colors.teal;
   });
   testWidgets('shows bluetooth when adding a new entry', (tester) async {
-    await tester.pumpWidget(await appBase(const AddEntryDialog()));
+    await pumpApp(tester, await appBase(const AddEntryDialog()));
     await tester.pumpAndSettle();
     expect(
       tester.widget<AddMultipleEntriesForm>(find.byType(AddMultipleEntriesForm)).showBluetooth,
@@ -64,7 +64,7 @@ void main() {
     );
   });
   testWidgets('hides bluetooth when editing an existing entry', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       AddEntryDialog(
         initialRecord: mockEntryPos(
           DateTime.now(), 123, 56, 43, 'Test note', Colors.teal,

@@ -31,7 +31,7 @@ void main() {
         phase: BleLaunchSyncPhase.scanning,
         deviceName: 'BM59',
       ));
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       BleLaunchSyncScope(
         notifier: view,
         child: Scaffold(
@@ -49,7 +49,7 @@ void main() {
   });
 
   testWidgets('hides when no meter search is running', (tester) async {
-    await tester.pumpWidget(await materialApp(Scaffold(
+    await pumpApp(tester, await materialApp(Scaffold(
       appBar: AppBar(actions: const [BleHomeSyncIndicator()]),
     )));
     expect(find.byIcon(Icons.sync), findsNothing);
@@ -64,7 +64,7 @@ void main() {
         deviceName: 'BM59',
         result: BleLaunchSyncResult(status: BleLaunchSyncStatus.cancelled),
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     final icon = tester.widget<Icon>(find.byIcon(Icons.bluetooth));
     expect(icon.color, ThemeData().colorScheme.onSurface);
@@ -83,7 +83,7 @@ void main() {
         phase: BleLaunchSyncPhase.done,
         result: BleLaunchSyncResult(status: BleLaunchSyncStatus.cancelled),
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     final icon = tester.widget<Icon>(find.byIcon(Icons.bluetooth));
     expect(icon.color, ThemeData().colorScheme.onSurface);
@@ -96,7 +96,7 @@ void main() {
         phase: BleLaunchSyncPhase.done,
         result: BleLaunchSyncResult(status: BleLaunchSyncStatus.skipped),
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
     expect(find.byIcon(Icons.bluetooth), findsNothing);
   });
 
@@ -106,7 +106,7 @@ void main() {
         phase: BleLaunchSyncPhase.scanning,
         deviceName: 'BM59',
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     expect(find.byIcon(Icons.sync), findsOneWidget);
     expect(find.byIcon(Icons.bluetooth), findsNothing);
@@ -120,7 +120,7 @@ void main() {
         phase: BleLaunchSyncPhase.connecting,
         deviceName: 'BM59',
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     final icon = tester.widget<Icon>(find.byIcon(Icons.bluetooth));
     expect(icon.color, Colors.blue);
@@ -140,7 +140,7 @@ void main() {
         phase: BleLaunchSyncPhase.connecting,
         deviceName: 'BM59',
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
     final connectingX = tester.getTopLeft(find.byIcon(Icons.bluetooth)).dx;
 
     view.setProgress(const BleLaunchSyncProgress(
@@ -158,7 +158,7 @@ void main() {
         deviceName: 'BM59',
         deviceCount: 2,
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     expect(find.byIcon(Icons.bluetooth), findsOneWidget);
     expect(find.byIcon(Icons.downloading), findsNothing);
@@ -174,7 +174,7 @@ void main() {
           count: 3,
         ),
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     final icon = tester.widget<Icon>(find.byIcon(Icons.bluetooth));
     expect(icon.color, Colors.green);
@@ -192,7 +192,7 @@ void main() {
         phase: BleLaunchSyncPhase.done,
         result: BleLaunchSyncResult(status: BleLaunchSyncStatus.upToDate),
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     final icon = tester.widget<Icon>(find.byIcon(Icons.bluetooth));
     expect(icon.color, Colors.white70);
@@ -204,7 +204,7 @@ void main() {
         phase: BleLaunchSyncPhase.done,
         result: BleLaunchSyncResult(status: BleLaunchSyncStatus.notFound),
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     expect(find.byIcon(Icons.bluetooth), findsOneWidget);
     expect(find.text('0'), findsOneWidget);
@@ -218,7 +218,7 @@ void main() {
         phase: BleLaunchSyncPhase.done,
         result: BleLaunchSyncResult(status: BleLaunchSyncStatus.failed),
       ));
-    await tester.pumpWidget(await _indicator(view));
+    await pumpApp(tester, await _indicator(view));
 
     final icon = tester.widget<Icon>(find.byIcon(Icons.bluetooth));
     expect(icon.color, ThemeData().colorScheme.error);

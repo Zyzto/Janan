@@ -6,7 +6,7 @@ import '../../../util.dart';
 
 void main() {
   testWidgets('should show title and widgets', (tester) async {
-    await tester.pumpWidget(await materialApp(TitledColumn(
+    await pumpApp(tester, await materialApp(TitledColumn(
       title: const Text('test title'),
       children: [
         const ListTile(title: Text('ListTile text 1'),),
@@ -24,7 +24,7 @@ void main() {
     expect(find.text('ListTile text 2'), findsOneWidget);
   });
   testWidgets('should show title first', (tester) async {
-    await tester.pumpWidget(await materialApp(TitledColumn(
+    await pumpApp(tester, await materialApp(TitledColumn(
       title: const Text('test title'),
       children: [
         const ListTile(title: Text('ListTile text 1'),),

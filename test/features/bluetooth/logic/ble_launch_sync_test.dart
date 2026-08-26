@@ -12,26 +12,16 @@ import 'package:blood_pressure_app/model/known_ble_device.dart';
 import 'package:flutter_settings_framework/flutter_settings_framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:blood_pressure_app/domain/domain.dart';
-import 'package:mockito/mockito.dart';
 
 import '../../../helpers/when_listen.dart';
 import '../../../util.dart';
 
-class _MockBluetoothCubit extends Mock implements BluetoothCubit {}
+class _MockBluetoothCubit extends StubBluetoothCubit {}
 
-class _MockDeviceScanCubit extends Mock implements DeviceScanCubit {
-  @override
-  Future<void> pauseScan() async {}
+class _MockDeviceScanCubit extends StubDeviceScanCubit {}
 
-  @override
-  Future<void> resumeScan() async {}
-}
-
-class _MockBleReadCubit extends Mock implements BleReadCubit {
-  _MockBleReadCubit([this.deviceName]);
-
-  @override
-  final String? deviceName;
+class _MockBleReadCubit extends StubBleReadCubit {
+  _MockBleReadCubit([super.deviceName]);
 }
 
 void main() {

@@ -18,7 +18,7 @@ void main() {
     await noteRepo.add(entry.note!);
     await intakeRepo.add(entry.intake!);
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       settings: TestSettingsSeed(confirmDeletion: false),
       bpRepo: bpRepo,
       noteRepo: noteRepo,
@@ -54,7 +54,7 @@ void main() {
     final fakeHealth = _FakeHealth();
     await bpRepo.add(entry.record!);
 
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       settings: TestSettingsSeed(
         confirmDeletion: false,
         useHealthConnect: true,

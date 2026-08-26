@@ -19,7 +19,7 @@ void main() {
       note: 'after walk',
       intake: (mockMedicine(designation: 'testMed', color: Colors.red), 12.0),
     );
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(entry: entry),
     ));
     await tester.pumpAndSettle();
@@ -76,7 +76,7 @@ void main() {
         ),
       ],
     );
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(entry: entry),
     ));
     await tester.pumpAndSettle();
@@ -90,7 +90,7 @@ void main() {
   testWidgets('compares against a higher previous reading', (tester) async {
     final current = mockEntry(time: DateTime(2026, 8, 24), sys: 120, dia: 80, pul: 70);
     final previous = mockEntry(time: DateTime(2026, 8, 20), sys: 130, dia: 85, pul: 75);
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(entry: current, previous: previous),
     ));
     await tester.pumpAndSettle();
@@ -116,7 +116,7 @@ void main() {
   });
 
   testWidgets('tapping systolic opens the metric card with a highlighted range', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(
         entry: mockEntry(time: DateTime(2026, 8, 24), sys: 120, dia: 80, pul: 70),
       ),
@@ -149,7 +149,7 @@ void main() {
   });
 
   testWidgets('opens the edit form', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(
         entry: mockEntry(time: DateTime(2026, 8, 24), sys: 120, dia: 80, pul: 70),
       ),
@@ -164,7 +164,7 @@ void main() {
 
   testWidgets('saving an edit does not reopen the form', (tester) async {
     final entry = mockEntry(time: DateTime(2026, 8, 24), sys: 120, dia: 80, pul: 70);
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(entry: entry),
     ));
     await tester.pumpAndSettle();
@@ -183,7 +183,7 @@ void main() {
 
   testWidgets('saving an edit keeps the new values on details', (tester) async {
     final entry = mockEntry(time: DateTime(2026, 8, 24), sys: 120, dia: 80, pul: 70);
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(entry: entry),
     ));
     await tester.pumpAndSettle();
@@ -208,7 +208,7 @@ void main() {
     final entry = mockEntry(time: DateTime(2026, 8, 24), sys: 120, dia: 80);
     final bpRepo = MockBloodPressureRepository();
     await bpRepo.add(entry.record!);
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(entry: entry),
       bpRepo: bpRepo,
       settings: TestSettingsSeed(confirmDeletion: false),
@@ -229,7 +229,7 @@ void main() {
       pul: 70,
       intake: (mockMedicine(designation: 'Amlodipine'), 5),
     );
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       MeasurementDetailScreen(entry: entry),
       locale: const Locale('ar'),
     ));

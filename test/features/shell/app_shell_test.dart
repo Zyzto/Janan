@@ -15,8 +15,7 @@ import '../../util.dart';
 void main() {
   testWidgets('keeps the nav bar while sliding to another tab', (tester) async {
     final presence = HomePresenceObserver();
-    await tester.pumpWidget(
-      await _minimalShell(
+    await pumpApp(tester, await _minimalShell(
         presence: presence,
         pages: const [
           Text('home-page'),
@@ -55,8 +54,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     final presence = HomePresenceObserver();
-    await tester.pumpWidget(
-      await _minimalShell(
+    await pumpApp(tester, await _minimalShell(
         presence: presence,
         pages: const [
           SizedBox.expand(child: Text('home-page')),
@@ -98,8 +96,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(400, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(
-      await _minimalShell(
+    await pumpApp(tester, await _minimalShell(
         pages: const [
           Center(child: Text('home-page')),
           Center(child: Text('weight-page')),
@@ -111,7 +108,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.descendant(of: find.byType(AppBar), matching: find.text('title')),
+      find.descendant(of: find.byType(AppBar), matching: find.text('Janan')),
       findsOneWidget,
     );
     expect(find.text('home-page'), findsOneWidget);
@@ -125,7 +122,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(
-      find.descendant(of: find.byType(AppBar), matching: find.text('weight')),
+      find.descendant(of: find.byType(AppBar), matching: find.text('Weight')),
       findsOneWidget,
     );
     expect(find.text('weight-page'), findsOneWidget);
@@ -141,7 +138,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(AppBar),
-        matching: find.text('statistics'),
+        matching: find.text('Statistics'),
       ),
       findsOneWidget,
     );
@@ -163,8 +160,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(400, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(
-      await _minimalShell(
+    await pumpApp(tester, await _minimalShell(
         showWeight: false,
         pages: const [
           SizedBox.expand(child: Text('home-page')),
@@ -192,8 +188,7 @@ void main() {
     final showWeight = ValueNotifier(true);
     addTearDown(showWeight.dispose);
 
-    await tester.pumpWidget(
-      await _minimalShell(
+    await pumpApp(tester, await _minimalShell(
         showWeightListenable: showWeight,
         pages: const [
           Text('home-page'),

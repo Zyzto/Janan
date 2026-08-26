@@ -97,7 +97,7 @@ class _HomeBpChartViewState extends ConsumerState<_HomeBpChartView>
   @override
   void initState() {
     super.initState();
-    _kind = HomeBpChartKind.parse(ref.readSetting(homeBpChartSetting));
+    _kind = HomeBpChartKind.parse(ref.readSetting<String>(homeBpChartSetting));
     _spin = AnimationController(vsync: this, duration: _swap);
     _size = AnimationController(vsync: this, duration: _swap);
     _height = AlwaysStoppedAnimation(_heightFor(_kind));
@@ -121,7 +121,7 @@ class _HomeBpChartViewState extends ConsumerState<_HomeBpChartView>
     ).animate(CurvedAnimation(parent: _size, curve: Curves.easeInOutCubic));
     setState(() => _kind = next);
     _size.forward(from: 0);
-    unawaited(ref.updateSetting(homeBpChartSetting, next.name));
+    unawaited(ref.updateSetting<String>(homeBpChartSetting, next.name));
   }
 
   Widget _fadeSlot({

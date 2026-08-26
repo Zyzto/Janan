@@ -109,7 +109,7 @@ void main() {
   });
 
   testWidgets('does not show a banner when launch sync is off', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       const BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         child: Text('home'),
@@ -126,7 +126,7 @@ void main() {
 
   testWidgets('keeps stages hidden until the compact indicator is tapped', (tester) async {
     final sync = _HangingSync();
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         sync: sync,
@@ -157,7 +157,7 @@ void main() {
   });
 
   testWidgets('shows imported count after a successful sync', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         sync: _FakeSync(const BleLaunchSyncResult(
@@ -182,7 +182,7 @@ void main() {
   testWidgets('stops checking when leaving the home route', (tester) async {
     final sync = _HangingSync();
     final observer = HomePresenceObserver();
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         homePresence: observer,
@@ -221,7 +221,7 @@ void main() {
       settings: const RouteSettings(name: '/'),
       builder: (_) => const SizedBox.shrink(),
     );
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         homePresence: observer,
@@ -270,7 +270,7 @@ void main() {
   });
 
   testWidgets('shows already up to date when nothing new was imported', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         sync: _FakeSync(const BleLaunchSyncResult(
@@ -289,7 +289,7 @@ void main() {
 
   testWidgets('pause in the popout stops sync until resume', (tester) async {
     final syncs = <_HangingSync>[];
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         createSync: () {
@@ -333,7 +333,7 @@ void main() {
 
   testWidgets('resume after meter not found starts scanning again', (tester) async {
     final syncs = <BleLaunchSync>[];
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         createSync: () {
@@ -380,7 +380,7 @@ void main() {
       settings: const RouteSettings(name: '/'),
       builder: (_) => const SizedBox.shrink(),
     );
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         homePresence: observer,
@@ -419,7 +419,7 @@ void main() {
 
   testWidgets('disabling launch sync mid-scan cancels and does not restart', (tester) async {
     final syncs = <_HangingSync>[];
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         createSync: () {
@@ -454,7 +454,7 @@ void main() {
 
   testWidgets('enabling launch sync on home starts scanning again', (tester) async {
     final syncs = <_HangingSync>[];
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         createSync: () {
@@ -494,7 +494,7 @@ void main() {
       settings: const RouteSettings(name: '/'),
       builder: (_) => const SizedBox.shrink(),
     );
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       BleLaunchSyncHost(
         resultBannerDuration: Duration.zero,
         homePresence: observer,

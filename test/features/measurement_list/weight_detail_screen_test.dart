@@ -29,7 +29,7 @@ void main() {
   );
 
   testWidgets('shows composition when profile and impedance are present', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       WeightDetailScreen(record: current),
       settings: profile(),
     ));
@@ -57,7 +57,7 @@ void main() {
   });
 
   testWidgets('compares against a heavier previous weigh-in', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       WeightDetailScreen(record: current, previous: previous),
       settings: profile(),
     ));
@@ -83,7 +83,7 @@ void main() {
   });
 
   testWidgets('prompts for a profile when impedance is present without one', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       WeightDetailScreen(record: current),
     ));
     await tester.pumpAndSettle();
@@ -103,7 +103,7 @@ void main() {
       AppSettings.fromController(testSettingsController!),
     )!;
     final hero = '${composition.bodyFatPercent.toStringAsFixed(1)} %';
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       WeightDetailScreen(record: current),
       settings: profile(),
     ));
@@ -125,7 +125,7 @@ void main() {
   });
 
   testWidgets('opens the edit form', (tester) async {
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       WeightDetailScreen(record: current),
       settings: TestSettingsSeed(weightInput: true),
     ));
@@ -140,7 +140,7 @@ void main() {
   testWidgets('deletes after confirmation', (tester) async {
     final repo = MockBodyweightRepository();
     await repo.add(current);
-    await tester.pumpWidget(await appBase(
+    await pumpApp(tester, await appBase(
       WeightDetailScreen(record: current),
       weightRepo: repo,
     ));

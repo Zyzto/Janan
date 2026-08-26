@@ -8,13 +8,13 @@ import '../../util.dart';
 
 void main() {
   testWidgets('shows empty state', (tester) async {
-    await tester.pumpWidget(await materialApp(const BluetoothDevicesScreen()));
+    await pumpApp(tester, await materialApp(const BluetoothDevicesScreen()));
     expect(find.text('No paired devices yet.'), findsOneWidget);
     expect(find.text('Add device'), findsOneWidget);
   });
 
   testWidgets('lists remembered devices', (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       const BluetoothDevicesScreen(),
       settings: TestSettingsSeed(knownBleDev: const [
         KnownBleDevice(id: 'abc', name: 'X4 Smart'),
@@ -29,7 +29,7 @@ void main() {
   });
 
   testWidgets('forgets a device after confirmation', (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       const BluetoothDevicesScreen(),
       settings: TestSettingsSeed(knownBleDev: const [
         KnownBleDevice(id: 'abc', name: 'X4 Smart'),
@@ -46,7 +46,7 @@ void main() {
   });
 
   testWidgets('toggles auto-sync for a device', (tester) async {
-    await tester.pumpWidget(await materialApp(
+    await pumpApp(tester, await materialApp(
       const BluetoothDevicesScreen(),
       settings: TestSettingsSeed(knownBleDev: const [
         KnownBleDevice(id: 'abc', name: 'X4 Smart'),
@@ -63,7 +63,7 @@ void main() {
   });
 
   testWidgets('shows import options below the device list', (tester) async {
-    await tester.pumpWidget(await materialApp(const BluetoothDevicesScreen()));
+    await pumpApp(tester, await materialApp(const BluetoothDevicesScreen()));
 
     expect(find.text('Auto-start Bluetooth import'), findsOneWidget);
     expect(find.text('Sync meter on launch'), findsOneWidget);
@@ -77,7 +77,7 @@ void main() {
   });
 
   testWidgets('toggles auto-start Bluetooth import', (tester) async {
-    await tester.pumpWidget(await materialApp(const BluetoothDevicesScreen()));
+    await pumpApp(tester, await materialApp(const BluetoothDevicesScreen()));
 
     expect(
       AppSettings.fromController(testSettingsController!).autostartBluetoothInput,

@@ -6,7 +6,7 @@ import '../../../util.dart';
 
 void main() {
   testWidgets('should not throw errors', (tester) async {
-    await tester.pumpWidget(await materialApp(DropDownListTile<int>(
+    await pumpApp(tester, await materialApp(DropDownListTile<int>(
       title: const Text('test title'),
       onChanged: (int? newValue) {
         assert(false, 'should not be called');
@@ -18,7 +18,7 @@ void main() {
       value: 3,
     ),),);
     expect(tester.takeException(), isNull);
-    await tester.pumpWidget(await materialApp(DropDownListTile<int>(
+    await pumpApp(tester, await materialApp(DropDownListTile<int>(
       title: const Text('This is a very long test title.'),
       subtitle: const Text('This is a very long test subtitle that should go over multiple lines.'),
       leading: const Icon(Icons.add),
@@ -34,7 +34,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
   testWidgets('should display selected option', (tester) async {
-    await tester.pumpWidget(await materialApp(DropDownListTile<int>(
+    await pumpApp(tester, await materialApp(DropDownListTile<int>(
       title: const Text('test title'),
       onChanged: (int? newValue) {
         assert(false, 'should not be called');
@@ -50,7 +50,7 @@ void main() {
   });
   testWidgets('should call onChanged on option selected', (tester) async {
     int callCount = 0;
-    await tester.pumpWidget(await materialApp(DropDownListTile<int>(
+    await pumpApp(tester, await materialApp(DropDownListTile<int>(
       title: const Text('test title'),
       onChanged: (int? newValue) {
         callCount += 1;

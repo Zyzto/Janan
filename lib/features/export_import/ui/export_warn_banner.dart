@@ -2,6 +2,8 @@ import 'package:blood_pressure_app/core/repository/repo_context.dart';
 import 'package:blood_pressure_app/components/custom_banner.dart';
 import 'package:blood_pressure_app/features/export_import/model/export_preset.dart';
 import 'package:blood_pressure_app/features/export_import/model/import_field_type.dart';
+import 'package:blood_pressure_app/model/storage/export_csv_settings.dart';
+import 'package:blood_pressure_app/model/storage/export_settings.dart';
 import 'package:blood_pressure_app/model/storage/types/export_format_setting.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -24,15 +26,26 @@ class _ExportWarnBannerState extends State<ExportWarnBanner> {
 
   @override
   Widget build(BuildContext context) {
-    if (_hidden) return _buildOK();
     final exportSettings = context.exportSettings;
+    final csvExportSettings = context.csvExportSettings;
+    return ListenableBuilder(
+      listenable: Listenable.merge([exportSettings, csvExportSettings]),
+      builder: (context, _) => _buildBanner(context, exportSettings, csvExportSettings),
+    );
+  }
+
+  Widget _buildBanner(
+    BuildContext context,
+    ExportSettings exportSettings,
+    CsvExportSettings csvExportSettings,
+  ) {
+    if (_hidden) return _buildOK();
     switch (exportSettings.exportFormat) {
       case ExportFormat.db:
         return _buildOK();
       case ExportFormat.pdf:
         return _buildNotImportable(context);
       case ExportFormat.csv:
-        final csvExportSettings = context.csvExportSettings;
         if (!csvExportSettings.exportHeadline) return _buildNoHeadline(context);
         if (![',', '|', ';'].contains(csvExportSettings.fieldDelimiter)) {
           return _buildNotImportable(context);
