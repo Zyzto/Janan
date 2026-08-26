@@ -108,24 +108,25 @@ What upstream already has and this fork still has: manual input, graphs, CSV / P
 
 <div dir="ltr">
 <p align="center">
-  <img src="docs/screenshots/ar-light-home.png" alt="الرئيسية" width="180" />
-  <img src="docs/screenshots/ar-light-stats.png" alt="الإحصاءات" width="180" />
-  <img src="docs/screenshots/ar-light-add.png" alt="إضافة قراءة" width="180" />
-  <img src="docs/screenshots/ar-light-settings.png" alt="الإعدادات" width="180" />
+
+  <img src="docs/screenshots/en-light-home.png" alt="Home" width="180" />
+  <img src="docs/screenshots/en-light-stats.png" alt="Statistics" width="180" />
+  <img src="docs/screenshots/en-light-add.png" alt="Add a reading" width="180" />
+  <img src="docs/screenshots/en-light-settings.png" alt="Settings" width="180" />
+  
 </p>
 </div>
 
 <details>
-<summary>السمة الداكنة</summary>
-<div dir="ltr">
+<summary>Dark theme</summary>
 <p align="center">
-  
-  <img src="docs/screenshots/ar-dark-home.png" alt="الرئيسية — داكن" width="180" />
-  <img src="docs/screenshots/ar-dark-stats.png" alt="الإحصاءات — داكن" width="180" />
-  <img src="docs/screenshots/ar-dark-add.png" alt="إضافة قراءة — داكن" width="180" />
-  <img src="docs/screenshots/ar-dark-settings.png" alt="الإعدادات — داكن" width="180" />
+ 
+  <img src="docs/screenshots/en-dark-home.png" alt="Home — dark" width="180" />
+  <img src="docs/screenshots/en-dark-stats.png" alt="Statistics — dark" width="180" />
+  <img src="docs/screenshots/en-dark-add.png" alt="Add a reading — dark" width="180" />
+  <img src="docs/screenshots/en-dark-settings.png" alt="Settings — dark" width="180" />
+
 </p>
-</div>
 </details>
 ---
 
