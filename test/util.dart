@@ -413,14 +413,20 @@ Future<Widget> materialApp(Widget child, {
 /// often completes those during settings init; later tests need enough
 /// single frames for a new [EasyLocalization] to finish. Do not
 /// [WidgetTester.pumpAndSettle] — logging can leave a timer that never idles.
-Future<void> pumpApp(WidgetTester tester, Widget app) async {
+///
+/// [extraPumps] advances stream providers after the first real frame. Golden
+/// graph tests pass `0` so chart animation stays on the captured frame.
+Future<void> pumpApp(
+  WidgetTester tester,
+  Widget app, {
+  int extraPumps = 5,
+}) async {
   await tester.pumpWidget(app);
   for (var i = 0; i < 20; i++) {
-    await tester.pump();
     if (find.byType(Scaffold).evaluate().isNotEmpty) break;
+    await tester.pump();
   }
-  // Stream providers (CombinedEntryBuilder) emit after the first frame.
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < extraPumps; i++) {
     await tester.pump();
   }
 }

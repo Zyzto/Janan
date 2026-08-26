@@ -137,8 +137,8 @@ void main() {
         HorizontalGraphLine(Colors.lightBlue, 113),
         HorizontalGraphLine(Colors.amber, 45),
       ],
-      interruptGraphAfterNDays: -1,
-    )));
+      interruptGraphAfterNDays: 0,
+    )), extraPumps: 0);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Not enough data to draw a graph.'), findsNothing);
@@ -209,9 +209,9 @@ void main() {
       settings: TestSettingsSeed(
         diaWarn: 75,
         sysWarn: 120,
-        interruptGraphAfterNDays: -1,
+        interruptGraphAfterNDays: 0,
       ),
-    ));
+    ), extraPumps: 0);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Not enough data to draw a graph.'), findsNothing);
@@ -226,9 +226,9 @@ void main() {
       settings: TestSettingsSeed(
         diaWarn: 75,
         sysWarn: 120,
-        interruptGraphAfterNDays: -1,
+        interruptGraphAfterNDays: 0,
       ),
-    ));
+    ), extraPumps: 0);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Not enough data to draw a graph.'), findsNothing);
@@ -242,9 +242,9 @@ void main() {
     ], [], [],
       settings: TestSettingsSeed(
         sysWarn: 120,
-        interruptGraphAfterNDays: -1,
+        interruptGraphAfterNDays: 0,
       ),
-    ));
+    ), extraPumps: 0);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Not enough data to draw a graph.'), findsNothing);
@@ -266,7 +266,7 @@ void main() {
         sysWarn: 120,
         interruptGraphAfterNDays: 2,
       ),
-    ));
+    ), extraPumps: 0);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 

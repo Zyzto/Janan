@@ -30,7 +30,7 @@ void main() {
           pulseRateIsLessThenLowerLimit: true,
           improperMeasurementPosition: true,
         ),
-        timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+        timestamp: DateTime(2026, 1, 2, 3, 4, 5),
       ),
       BleMeasurementData(
         systolic: 124,
@@ -66,9 +66,8 @@ void main() {
 
     expect(find.textContaining('User ID'), findsOneWidget); // one measurement has UserID: null
     expect(find.textContaining('Blood pressure'), findsNWidgets(2));
-    for (final measurement in measurements) {
-      expect(find.textContaining(measurement.systolic.toInt().toString()), findsOneWidget);
-    }
+    expect(find.textContaining('123/456'), findsOneWidget);
+    expect(find.textContaining('124/457'), findsOneWidget);
 
     expect(find.text('Measurement #2'), findsOneWidget);
     expect(find.text('Select'), findsNWidgets(2));
