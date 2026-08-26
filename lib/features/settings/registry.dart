@@ -1,0 +1,697 @@
+import 'package:blood_pressure_app/l10n/app_locales.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_settings_framework/flutter_settings_framework.dart';
+
+const styleSection = SettingSection(
+  key: 'style',
+  titleKey: 'appStyleSettings',
+  icon: Icons.color_lens_outlined,
+  order: 0,
+  initiallyExpanded: true,
+);
+
+const featuresSection = SettingSection(
+  key: 'features',
+  titleKey: 'featuresSetting',
+  icon: Icons.toggle_off_outlined,
+  order: 1,
+  initiallyExpanded: true,
+);
+
+const bluetoothSection = SettingSection(
+  key: 'bluetooth',
+  titleKey: 'bluetoothSettings',
+  icon: Icons.bluetooth,
+  order: 2,
+  initiallyExpanded: true,
+);
+
+const dataSection = SettingSection(
+  key: 'data',
+  titleKey: 'data',
+  icon: Icons.storage_outlined,
+  order: 3,
+  initiallyExpanded: true,
+);
+
+const generalSection = SettingSection(
+  key: 'general',
+  titleKey: 'generalSettingsSection',
+  icon: Icons.tune,
+  order: 4,
+);
+
+const aboutSection = SettingSection(
+  key: 'about',
+  titleKey: 'aboutWarnValuesScreen',
+  icon: Icons.info_outline,
+  order: 5,
+);
+
+const graphSection = SettingSection(
+  key: 'graph',
+  titleKey: 'graphSettings',
+  icon: Icons.trending_down_outlined,
+  order: 6,
+);
+
+const languageSetting = EnumSetting(
+  'language',
+  defaultValue: 'system',
+  titleKey: 'language',
+  options: languageSettingOptions,
+  icon: Icons.language,
+  section: 'style',
+  order: 1,
+  searchTerms: {
+    'en': ['locale', 'language', 'arabic'],
+    'ar': ['لغة', 'عربي', 'الإنجليزية'],
+  },
+);
+
+const themeModeSetting = EnumSetting(
+  'theme_mode',
+  defaultValue: 'system',
+  titleKey: 'theme',
+  options: ['system', 'light', 'dark'],
+  optionLabels: {
+    'system': 'system',
+    'light': 'light',
+    'dark': 'dark',
+  },
+  icon: Icons.brightness_4,
+  section: 'style',
+  order: 0,
+  searchTerms: {
+    'en': ['theme', 'dark', 'light', 'mode'],
+    'ar': ['المظهر', 'السمة', 'داكن', 'فاتح'],
+  },
+);
+
+const accentColorSetting = ColorSetting(
+  'accent_color',
+  defaultValue: 0xFF009688,
+  titleKey: 'accentColor',
+  icon: Icons.palette_outlined,
+  section: 'style',
+  order: 3,
+);
+
+const graphSettingsAction = ActionSetting(
+  'graph_settings',
+  titleKey: 'graphSettings',
+  icon: Icons.trending_down_outlined,
+  section: 'style',
+  order: 5,
+);
+
+const dateFormatStringSetting = StringSetting(
+  'date_format_string',
+  defaultValue: 'yyyy-MM-dd HH:mm',
+  titleKey: 'enterTimeFormatScreen',
+  icon: Icons.schedule,
+  section: 'style',
+  order: 2,
+);
+
+const animationSpeedSetting = IntSetting(
+  'animation_speed',
+  defaultValue: 150,
+  titleKey: 'animationSpeed',
+  icon: Icons.speed,
+  section: 'style',
+  order: 4,
+  min: 0,
+  max: 1000,
+  step: 50,
+  visible: false,
+);
+
+const sysColorSetting = ColorSetting(
+  'sys_color',
+  defaultValue: 0xFF009688,
+  titleKey: 'sysColor',
+  section: 'graph',
+  order: 0,
+  visible: false,
+);
+
+const diaColorSetting = ColorSetting(
+  'dia_color',
+  defaultValue: 0xFF4CAF50,
+  titleKey: 'diaColor',
+  section: 'graph',
+  order: 1,
+  visible: false,
+);
+
+const pulColorSetting = ColorSetting(
+  'pul_color',
+  defaultValue: 0xFFF44336,
+  titleKey: 'pulColor',
+  section: 'graph',
+  order: 2,
+  visible: false,
+);
+
+const graphLineThicknessSetting = DoubleSetting(
+  'graph_line_thickness',
+  defaultValue: 3,
+  titleKey: 'graphLineThickness',
+  section: 'graph',
+  order: 3,
+  min: 1,
+  max: 10,
+  step: 0.5,
+  visible: false,
+);
+
+const needlePinBarWidthSetting = DoubleSetting(
+  'needle_pin_bar_width',
+  defaultValue: 5,
+  titleKey: 'needlePinBarWidth',
+  subtitleKey: 'needlePinBarWidthDesc',
+  section: 'graph',
+  order: 4,
+  min: 1,
+  max: 20,
+  step: 1,
+  visible: false,
+);
+
+const sysWarnSetting = IntSetting(
+  'sys_warn',
+  defaultValue: 120,
+  titleKey: 'sysWarn',
+  section: 'graph',
+  order: 5,
+  min: 0,
+  max: 300,
+  visible: false,
+);
+
+const diaWarnSetting = IntSetting(
+  'dia_warn',
+  defaultValue: 80,
+  titleKey: 'diaWarn',
+  section: 'graph',
+  order: 6,
+  min: 0,
+  max: 200,
+  visible: false,
+);
+
+const drawRegressionLinesSetting = BoolSetting(
+  'draw_regression_lines',
+  defaultValue: false,
+  titleKey: 'drawRegressionLines',
+  subtitleKey: 'drawRegressionLinesDesc',
+  icon: Icons.show_chart,
+  section: 'graph',
+  order: 7,
+  visible: false,
+);
+
+const interruptGraphAfterNDaysSetting = IntSetting(
+  'interrupt_graph_after_n_days',
+  defaultValue: 10,
+  titleKey: 'maxDataInterval',
+  subtitleKey: 'maxDataIntervalDesc',
+  section: 'graph',
+  order: 8,
+  min: 0,
+  max: 365,
+  visible: false,
+);
+
+const homeBpChartSetting = EnumSetting(
+  'home_bp_chart',
+  defaultValue: 'dailyRange',
+  titleKey: 'chartDailyRange',
+  options: ['dailyRange', 'classification', 'pulsePressure'],
+  useRawLabels: true,
+  visible: false,
+);
+
+const graphMarkingsAction = ActionSetting(
+  'graph_markings',
+  titleKey: 'customGraphMarkings',
+  icon: Icons.horizontal_rule,
+  section: 'graph',
+  order: 9,
+  visible: false,
+);
+
+const horizontalGraphLinesSetting = StringSetting(
+  'horizontal_graph_lines',
+  defaultValue: '[]',
+  titleKey: 'horizontalLines',
+  section: 'graph',
+  visible: false,
+);
+
+const startWithAddMeasurementPageSetting = BoolSetting(
+  'start_with_add_measurement_page',
+  defaultValue: false,
+  titleKey: 'startWithAddMeasurementPage',
+  subtitleKey: 'startWithAddMeasurementPageDescription',
+  icon: Icons.electric_bolt_outlined,
+  section: 'general',
+  order: 0,
+);
+
+const allowManualTimeInputSetting = BoolSetting(
+  'allow_manual_time_input',
+  defaultValue: true,
+  titleKey: 'allowManualTimeInput',
+  icon: Icons.schedule,
+  section: 'general',
+  order: 1,
+);
+
+const validateInputsSetting = BoolSetting(
+  'validate_inputs',
+  defaultValue: true,
+  titleKey: 'validateInputs',
+  icon: Icons.task_alt,
+  section: 'general',
+  order: 2,
+  visible: false,
+);
+
+const allowMissingValuesSetting = BoolSetting(
+  'allow_missing_values',
+  defaultValue: false,
+  titleKey: 'allowMissingValues',
+  section: 'general',
+  order: 3,
+  visible: false,
+);
+
+const confirmDeletionSetting = BoolSetting(
+  'confirm_deletion',
+  defaultValue: true,
+  titleKey: 'confirmDeletion',
+  icon: Icons.delete_forever,
+  section: 'general',
+  order: 2,
+);
+
+const compactListSetting = BoolSetting(
+  'compact_list',
+  defaultValue: false,
+  titleKey: 'compactList',
+  icon: Icons.view_agenda_outlined,
+  section: 'style',
+  order: 4,
+);
+
+const preferredPressureUnitSetting = EnumSetting(
+  'preferred_pressure_unit',
+  defaultValue: 'mmHg',
+  titleKey: 'preferredPressureUnit',
+  options: ['mmHg', 'kPa'],
+  useRawLabels: true,
+  icon: Icons.speed,
+  section: 'features',
+  order: 2,
+);
+
+const preferredWeightUnitSetting = EnumSetting(
+  'preferred_weight_unit',
+  defaultValue: 'kg',
+  titleKey: 'preferredWeightUnit',
+  options: ['kg', 'lbs', 'st'],
+  useRawLabels: true,
+  icon: Icons.scale,
+  section: 'features',
+  order: 1,
+  dependsOn: 'weight_input',
+  enabledWhen: true,
+);
+
+const autostartBluetoothInputSetting = BoolSetting(
+  'autostart_bluetooth_input',
+  defaultValue: false,
+  titleKey: 'autostartBluetoothInput',
+  subtitleKey: 'autostartBluetoothInputDescription',
+  icon: Icons.bluetooth,
+  section: 'bluetooth',
+  order: 2,
+  visible: false,
+);
+
+const syncBluetoothOnLaunchSetting = BoolSetting(
+  'sync_bluetooth_on_launch',
+  defaultValue: true,
+  titleKey: 'syncBluetoothOnLaunch',
+  subtitleKey: 'syncBluetoothOnLaunchDescription',
+  icon: Icons.sync,
+  section: 'bluetooth',
+  order: 3,
+  visible: false,
+);
+
+const bluetoothImportModeSetting = EnumSetting(
+  'bluetooth_import_mode',
+  defaultValue: 'disabled',
+  titleKey: 'bluetoothImportMode',
+  subtitleKey: 'bluetoothImportModeDescription',
+  options: ['disabled', 'last', 'all'],
+  optionLabels: {
+    'disabled': 'bluetoothImportModeDisabled',
+    'last': 'bluetoothImportModeLast',
+    'all': 'bluetoothImportModeAll',
+  },
+  icon: Icons.download,
+  section: 'bluetooth',
+  order: 4,
+  visible: false,
+);
+
+const trustBleTimeSetting = BoolSetting(
+  'trust_ble_time',
+  defaultValue: true,
+  titleKey: 'trustBLETime',
+  icon: Icons.lock_clock_outlined,
+  section: 'bluetooth',
+  order: 5,
+  visible: false,
+);
+
+const showBleTimeTrustDialogSetting = BoolSetting(
+  'show_ble_time_trust_dialog',
+  defaultValue: true,
+  titleKey: 'trustBLETime',
+  visible: false,
+);
+
+const lastVersionSetting = IntSetting(
+  'last_version',
+  defaultValue: 0,
+  titleKey: 'version',
+  visible: false,
+);
+
+const bottomAppBarsSetting = BoolSetting(
+  'bottom_app_bars',
+  defaultValue: false,
+  titleKey: 'bottomAppBars',
+  visible: false,
+);
+
+const weightInputSetting = BoolSetting(
+  'weight_input',
+  defaultValue: false,
+  titleKey: 'activateWeightFeatures',
+  icon: Icons.scale,
+  section: 'features',
+  order: 0,
+);
+
+const bleInputSetting = EnumSetting(
+  'ble_input',
+  defaultValue: 'disabled',
+  titleKey: 'bluetoothInput',
+  subtitleKey: 'bluetoothInputDesc',
+  options: ['disabled', 'oldBluetoothInput', 'newBluetoothInputCrossPlatform'],
+  optionLabels: {
+    'disabled': 'disabled',
+    'oldBluetoothInput': 'legacyBluetoothInput',
+    'newBluetoothInputCrossPlatform': 'stableBluetoothInput',
+  },
+  icon: Icons.bluetooth,
+  section: 'bluetooth',
+  order: 0,
+);
+
+const athleteModeSetting = BoolSetting(
+  'athlete_mode',
+  defaultValue: false,
+  titleKey: 'athleteMode',
+  subtitleKey: 'athleteModeDesc',
+  visible: false,
+);
+
+const bodyHeightCmSetting = DoubleSetting(
+  'body_height_cm',
+  defaultValue: 0,
+  titleKey: 'bodyHeightCm',
+  visible: false,
+);
+
+const birthYearSetting = IntSetting(
+  'birth_year',
+  defaultValue: 0,
+  titleKey: 'birthYear',
+  visible: false,
+);
+
+const bodySexSetting = EnumSetting(
+  'body_sex',
+  defaultValue: '',
+  titleKey: 'bodySex',
+  options: ['', 'female', 'male'],
+  visible: false,
+);
+
+const knownBleDevicesSetting = StringSetting(
+  'known_ble_devices',
+  defaultValue: '[]',
+  titleKey: 'bluetoothDevices',
+  visible: false,
+);
+
+const bodyProfileAction = ActionSetting(
+  'body_profile',
+  titleKey: 'bodyProfile',
+  subtitleKey: 'bodyProfileIncomplete',
+  icon: Icons.accessibility_new,
+  section: 'features',
+  order: 3,
+);
+
+const medicationsAction = ActionSetting(
+  'medications',
+  titleKey: 'medications',
+  icon: Icons.medication,
+  section: 'features',
+  order: 4,
+);
+
+const bluetoothDevicesAction = ActionSetting(
+  'bluetooth_devices',
+  titleKey: 'bluetoothDevices',
+  icon: Icons.bluetooth_searching,
+  section: 'bluetooth',
+  order: 1,
+);
+
+const useHealthConnectSetting = BoolSetting(
+  'use_health_connect',
+  defaultValue: false,
+  titleKey: 'optEnableHealthConnect',
+  subtitleKey: 'healthConnectDesc',
+  icon: Icons.sync,
+  section: 'data',
+  order: 0,
+  visible: false,
+);
+
+const syncPressureMeasurementsSetting = BoolSetting(
+  'sync_pressure_measurements',
+  defaultValue: true,
+  titleKey: 'healthConnect',
+  section: 'data',
+  order: 1,
+  dependsOn: 'use_health_connect',
+  enabledWhen: true,
+  visible: false,
+);
+
+const syncWeightMeasurementsSetting = BoolSetting(
+  'sync_weight_measurements',
+  defaultValue: true,
+  titleKey: 'weight',
+  section: 'data',
+  order: 2,
+  dependsOn: 'use_health_connect',
+  enabledWhen: true,
+  visible: false,
+);
+
+const syncOnAppStartSetting = BoolSetting(
+  'sync_on_app_start',
+  defaultValue: true,
+  titleKey: 'syncOnAppStart',
+  section: 'data',
+  order: 3,
+  dependsOn: 'use_health_connect',
+  enabledWhen: true,
+  visible: false,
+);
+
+const healthConnectAction = ActionSetting(
+  'health_connect_screen',
+  titleKey: 'healthConnect',
+  icon: Icons.sync,
+  section: 'data',
+  order: 0,
+);
+
+const exportImportAction = ActionSetting(
+  'export_import',
+  titleKey: 'exportImport',
+  icon: Icons.download,
+  section: 'data',
+  order: 1,
+);
+
+const deleteDataAction = ActionSetting(
+  'delete_data',
+  titleKey: 'delete',
+  icon: Icons.delete,
+  section: 'data',
+  order: 4,
+);
+
+const onboardingCompletedSetting = BoolSetting(
+  'onboarding_completed',
+  defaultValue: false,
+  titleKey: 'onboardingReplay',
+  visible: false,
+);
+
+const replayOnboardingAction = ActionSetting(
+  'replay_onboarding',
+  titleKey: 'onboardingReplay',
+  subtitleKey: 'onboardingReplayHint',
+  icon: Icons.help_outline,
+  section: 'about',
+  order: 0,
+);
+
+const versionAction = ActionSetting(
+  'version',
+  titleKey: 'version',
+  icon: Icons.info_outline,
+  section: 'about',
+  order: 1,
+);
+
+const sourceCodeAction = ActionSetting(
+  'source_code',
+  titleKey: 'sourceCode',
+  icon: Icons.merge,
+  section: 'about',
+  order: 2,
+);
+
+const licensesAction = ActionSetting(
+  'licenses',
+  titleKey: 'licenses',
+  icon: Icons.policy_outlined,
+  section: 'about',
+  order: 3,
+);
+
+const exportSettingsAction = ActionSetting(
+  'export_settings',
+  titleKey: 'exportSettings',
+  icon: Icons.tune,
+  section: 'data',
+  order: 2,
+);
+
+const importSettingsAction = ActionSetting(
+  'import_settings',
+  titleKey: 'importSettings',
+  subtitleKey: 'requiresAppRestart',
+  icon: Icons.settings_backup_restore,
+  section: 'data',
+  order: 3,
+);
+
+const logsViewerAction = ActionSetting(
+  'logs_viewer',
+  titleKey: 'logs',
+  icon: Icons.article_outlined,
+  section: 'about',
+  order: 4,
+  searchTerms: {
+    'en': ['logs', 'debug', 'crash'],
+    'ar': ['سجلات', 'تتبع'],
+  },
+);
+
+SettingsRegistry createAppSettingsRegistry() => SettingsRegistry.withSettings(
+  sections: [
+    styleSection,
+    featuresSection,
+    bluetoothSection,
+    dataSection,
+    generalSection,
+    aboutSection,
+    graphSection,
+  ],
+  settings: [
+    startWithAddMeasurementPageSetting,
+    allowManualTimeInputSetting,
+    validateInputsSetting,
+    allowMissingValuesSetting,
+    confirmDeletionSetting,
+    compactListSetting,
+    preferredPressureUnitSetting,
+    preferredWeightUnitSetting,
+    autostartBluetoothInputSetting,
+    syncBluetoothOnLaunchSetting,
+    bluetoothImportModeSetting,
+    trustBleTimeSetting,
+    showBleTimeTrustDialogSetting,
+    lastVersionSetting,
+    bottomAppBarsSetting,
+    sysColorSetting,
+    diaColorSetting,
+    pulColorSetting,
+    graphLineThicknessSetting,
+    needlePinBarWidthSetting,
+    sysWarnSetting,
+    diaWarnSetting,
+    drawRegressionLinesSetting,
+    interruptGraphAfterNDaysSetting,
+    homeBpChartSetting,
+    graphMarkingsAction,
+    horizontalGraphLinesSetting,
+    themeModeSetting,
+    languageSetting,
+    dateFormatStringSetting,
+    animationSpeedSetting,
+    accentColorSetting,
+    graphSettingsAction,
+    weightInputSetting,
+    bleInputSetting,
+    athleteModeSetting,
+    bodyHeightCmSetting,
+    birthYearSetting,
+    bodySexSetting,
+    knownBleDevicesSetting,
+    bodyProfileAction,
+    medicationsAction,
+    bluetoothDevicesAction,
+    useHealthConnectSetting,
+    syncPressureMeasurementsSetting,
+    syncWeightMeasurementsSetting,
+    syncOnAppStartSetting,
+    healthConnectAction,
+    exportImportAction,
+    deleteDataAction,
+    onboardingCompletedSetting,
+    replayOnboardingAction,
+    versionAction,
+    sourceCodeAction,
+    licensesAction,
+    exportSettingsAction,
+    importSettingsAction,
+    logsViewerAction,
+  ],
+);

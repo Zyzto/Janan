@@ -1,0 +1,32 @@
+group 'com.spencerccf.app_settings'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdk = 36
+    namespace 'com.spencerccf.app_settings'
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        minSdk = 16
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.20'
+}

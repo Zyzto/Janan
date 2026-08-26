@@ -55,11 +55,9 @@ jobs:
 
       - name: Analyze
         run: flutter analyze
-        working-directory: app
 
       - name: Test
         run: flutter test
-        working-directory: app
 
   build-apk:
     name: Signed APK
@@ -83,7 +81,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          build-root-directory: app/android
+          build-root-directory: android
           add-job-summary: on-failure
 
       - name: Set up Flutter
@@ -108,15 +106,14 @@ jobs:
         run: bash ./scripts/ci/codegen.sh
 
       - name: Build release APK
-        run: flutter build apk --release --flavor github
-        working-directory: app
+        run: flutter build apk --release
 
       - name: Rename APK
         run: |
           eval "$(bash ./scripts/ci/app_version.sh)"
           mkdir -p dist
-          cp app/build/app/outputs/flutter-apk/app-github-release.apk \
-            "dist/blood-pressure-monitor-${name}.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "dist/janan-${name}.apk"
           ls -lh dist/
 
       - name: Verify APK is not debug-signed
@@ -161,4 +158,4 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            blood-pressure-monitor-*.apk
+            janan-*.apk

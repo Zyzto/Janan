@@ -34,13 +34,12 @@ flutter drive \
   --driver=test_driver/integration_test.dart \
   --target=integration_test/<testName>.dart \
   --dart-define=testing_mode=true \
-  --browser-name android-chrome --android-emulator \
-  --flavor github
+  --browser-name android-chrome --android-emulator
 ```
 
 To ues the emulator `--browser-name android-chrome --android-emulator` is 
-required. `--flavor github` is needed for the driver to find the apk. `--dart-define=testing_mode=true` is needed to avoid some caching that messes with tests. 
+required. `--dart-define=testing_mode=true` is needed to avoid some caching that messes with tests. 
 
 ```bash
-flutter test integration_test --flavor github
+flutter test integration_test
 ```

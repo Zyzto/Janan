@@ -1,0 +1,169 @@
+import 'dart:io';
+
+import 'package:archive/archive.dart';
+import 'package:blood_pressure_app/core/database/health_database.dart';
+import 'package:blood_pressure_app/logging.dart';
+import 'package:blood_pressure_app/model/storage/file_settings_loader.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+/// A static location to report errors to and disrupt the program flow in case
+/// there is the risk of data loss when continuing.
+class ErrorReporting {
+  ErrorReporting._create();
+
+  /// Whether there is already an critical error displayed.
+  static bool isErrorState = false;
+
+  /// Replaces the application with an ErrorScreen.
+  ///
+  /// This method can be used to avoid running any further code in your current function, by awaiting
+  static Future<void> reportCriticalError(String title, String text) async {
+    if (isErrorState) throw Exception('Tried to report another error:\n title = $title,\n text = $text');
+    isErrorState = true;
+    try {
+      Log.severe('$title: $text');
+    } catch (_) {}
+    runApp(ErrorScreen(
+      title: title,
+      text: text,
+      debugInfo: await _carefullyCollectDebugInfo(),
+    ),);
+    return Future.delayed(const Duration(days: 30,));
+  }
+
+  static Future<PackageInfo> _carefullyCollectDebugInfo() async {
+    PackageInfo packageInfo;
+    try {
+      packageInfo = await PackageInfo.fromPlatform();
+    } catch (e) {
+      packageInfo = PackageInfo(appName: 'err', packageName: 'err', version: 'err', buildNumber: 'err');
+    }
+
+    return packageInfo;
+  }
+}
+
+/// A full [MaterialApp] that is especially safe against throwing errors and
+/// allows for debugging and data extraction.
+class ErrorScreen extends StatelessWidget {
+  
+  const ErrorScreen({super.key, required this.title, required this.text, required this.debugInfo});
+
+  final String title;
+  final String text;
+  final PackageInfo debugInfo;
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+      title: 'Critical error',
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Critical error'),
+          backgroundColor: Colors.red,
+        ),
+        body: Builder(
+          builder: (context) {
+            final scaffoldMessenger = ScaffoldMessenger.of(context);
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 20,),
+                  Text('App version: ${debugInfo.version}'),
+                  Text('Build number: ${debugInfo.buildNumber}'),
+                  const Divider(),
+                  Text(title, style: const TextStyle(fontSize: 20, ), ),
+                  Text(text),
+                  const Divider(),
+                  TextButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(
+                        text: 'Error:\nBuild number:${debugInfo.buildNumber}\n-----\n$title:\n---\n$text\n',
+                      ),);
+                      scaffoldMessenger.showSnackBar(const SnackBar(
+                          content: Text('Copied to clipboard'),),);
+                    },
+                    child: const Text('copy error message'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        final url = Uri.parse('https://github.com/derdilla/blood-pressure-monitor-fl/issues');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        } else {
+                          scaffoldMessenger.showSnackBar(const SnackBar(
+                            content: Text('ERR: Please open this website: https://github.com/derdilla/blood-pressure-monitor-fl/issues'),),);
+                        }
+                      } catch (e) {
+                        scaffoldMessenger.showSnackBar(SnackBar(
+                            content: Text('ERR: $e'),),);
+                      }
+                    },
+                    child: const Text('open issue reporting website'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        await FileSettingsLoader.flushWrites();
+                        final loader = await FileSettingsLoader.load();
+                        final archive = await loader.createArchive();
+                        await FilePicker.saveFile(
+                          type: FileType.any, // application/zip
+                          fileName: 'bloodPressureSettings.zip',
+                          bytes: ZipEncoder().encodeBytes(archive!),
+                        );
+                      } catch(e) {
+                        scaffoldMessenger.showSnackBar(SnackBar(
+                            content: Text('ERR: $e')));
+                      }
+                    },
+                    child: const Text('rescue settings'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        final dir = await getDatabasesPath();
+                        assert(dir != inMemoryDatabasePath);
+                        final candidates = [
+                          join(dir, HealthDatabase.fileName),
+                          join(dir, HealthDatabase.legacyBackupName),
+                          join(dir, HealthDatabase.legacyFileName),
+                        ];
+                        final path = candidates
+                            .where((p) => File(p).existsSync())
+                            .firstOrNull;
+                        if (path == null) {
+                          scaffoldMessenger.showSnackBar(
+                            const SnackBar(content: Text('ERR: no database file')),
+                          );
+                          return;
+                        }
+                        await FilePicker.saveFile(
+                          fileName: basename(path),
+                          bytes: File(path).readAsBytesSync(),
+                          type: FileType.any, // application/vnd.sqlite3
+                        );
+                      } catch(e) {
+                        scaffoldMessenger.showSnackBar(SnackBar(
+                          content: Text('ERR: $e'),),);
+                      }
+                    },
+                    child: const Text('rescue db'),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  
+}

@@ -13,7 +13,7 @@ use std::time::Duration;
 #[derive(Debug, Default)]
 pub struct Summary {
     pub root: PathBuf,
-    /// E.g. `version: 1.8.8+50`
+    /// E.g. `version: 26.08.0+58`
     pub new_version_line: Option<String>,
     pub update_flutter: bool,
     pub update_dependencies: bool,
@@ -115,30 +115,12 @@ impl Summary {
             pb.enable_steady_tick(Duration::from_millis(1000 / 4));
             pb.set_prefix("Updating dependencies");
 
-            pb.set_message("health_data_store pub deps");
-            Self::spawn_propagating_logs(
-                Command::new("dart")
-                            .arg("pub").arg("upgrade")
-                            .arg("--tighten").arg("--major-versions")
-                            .current_dir(&self.root.join("health_data_store")),
-                    &pb,
-            );
-
-            pb.set_message("health_data_store generate");
-            Self::spawn_propagating_logs(
-                Command::new("dart")
-                            .arg("run").arg("build_runner").arg("build")
-                            .arg("--delete-conflicting-outputs")
-                            .current_dir(&self.root.join("health_data_store")),
-                    &pb,
-            );
-
             pb.set_message("app pub deps");
             Self::spawn_propagating_logs(
                 Command::new("flutter")
                             .arg("pub").arg("upgrade")
                             .arg("--tighten").arg("--major-versions")
-                            .current_dir(&self.root.join("app")),
+                            .current_dir(&self.root),
                     &pb,
             );
 
@@ -147,7 +129,7 @@ impl Summary {
                 Command::new("flutter").arg("pub")
                             .arg("run").arg("build_runner").arg("build")
                             .arg("--delete-conflicting-outputs")
-                            .current_dir(&self.root.join("app")),
+                            .current_dir(&self.root),
                     &pb,
             );
 
@@ -156,16 +138,16 @@ impl Summary {
 
         if self.update_flutter || self.new_version_line.is_some() {
             _ = m.println("Updating pubspec.yaml");
-            let pubspec = fs::read_to_string(self.root.join("app").join("pubspec.yaml")).unwrap();
-            let version_re = Regex::new(r"flutter: '\d*.\d*.\d*'").unwrap();
-            let pubspec = version_re.replace(pubspec.as_str(), format!("flutter: '{current_flutter_version}'"));
+            let pubspec = fs::read_to_string(self.root.join("pubspec.yaml")).unwrap();
+            let version_re = Regex::new(r"flutter: \d+\.\d+\.\d+").unwrap();
+            let pubspec = version_re.replace(pubspec.as_str(), format!("flutter: {current_flutter_version}"));
 
             let pubspec = if let Some(new_version_line) = &self.new_version_line {
                 let version_re = Regex::new(r"version:\s*\d*.\d*.\d*\+\d*").unwrap();
                 version_re.replace(&pubspec, new_version_line)
             } else { pubspec };
 
-            fs::write(self.root.join("app").join("pubspec.yaml"), pubspec.to_string()).unwrap();
+            fs::write(self.root.join("pubspec.yaml"), pubspec.to_string()).unwrap();
         }
 
         if self.run_tests {
@@ -174,22 +156,15 @@ impl Summary {
             pb.enable_steady_tick(Duration::from_millis(1000 / 4));
             pb.set_prefix("Running tests");
 
-            pb.set_message("Testing health_data_store");
-            let libs_ok = Self::spawn_propagating_logs(
-                Command::new("dart").arg("test")
-                    .current_dir(&self.root.join("health_data_store")),
-                &pb,
-            );
-
             pb.set_message("Testing app");
             let app_ok = Self::spawn_propagating_logs(
                 Command::new("flutter").arg("test")
-                    .current_dir(&self.root.join("app")),
+                    .current_dir(&self.root),
                 &pb,
             );
 
-            if !libs_ok || !app_ok {
-                if !prompt_bool("App or Library tests failed. Do you want to proceed?", None).unwrap_or(false) {
+            if !app_ok {
+                if !prompt_bool("App tests failed. Do you want to proceed?", None).unwrap_or(false) {
                     exit(0);
                 }
             }
@@ -206,39 +181,38 @@ impl Summary {
             pb.set_message("Cleaning...");
             Self::spawn_propagating_logs(
                 Command::new("flutter").arg("clean")
-                        .current_dir(&self.root.join("app")),
+                        .current_dir(&self.root),
                     &pb,
             );
 
             pb.set_message("Build APK...");
             let debug_info_path = self.root
-                .join("app")
                 .join("build")
                 .join("debug_info");
             Self::spawn_propagating_logs(
                 Command::new("flutter").arg("build").arg("apk")
-                        .arg("--release").arg("--flavor").arg("github")
+                        .arg("--release")
                         .arg("--obfuscate").arg(format!("--split-debug-info={}", debug_info_path.display()))
-                        .current_dir(&self.root.join("app")),
+                        .current_dir(&self.root),
                     &pb,
             );
 
             pb.set_message("Build split APKs...");
             Self::spawn_propagating_logs(
                 Command::new("flutter").arg("build").arg("apk")
-                        .arg("--release").arg("--flavor").arg("github")
+                        .arg("--release")
                         .arg("--obfuscate").arg(format!("--split-debug-info={}", debug_info_path.display()))
                         .arg("--split-per-abi")
-                        .current_dir(&self.root.join("app")),
+                        .current_dir(&self.root),
                     &pb,
             );
 
             pb.set_message("Build bundle...");
             Self::spawn_propagating_logs(
                 Command::new("flutter").arg("build").arg("appbundle")
-                        .arg("--release").arg("--flavor").arg("github")
+                        .arg("--release")
                         .arg("--obfuscate").arg(format!("--split-debug-info={}", debug_info_path.display()))
-                        .current_dir(&self.root.join("app")),
+                        .current_dir(&self.root),
                     &pb,
             );
 
@@ -255,7 +229,7 @@ impl Summary {
                 fs::remove_dir_all(&target_dir).unwrap();
             }
             fs::create_dir_all(&target_dir).unwrap();
-            let out_base = self.root.join("app").join("build").join("app").join("outputs");
+            let out_base = self.root.join("build").join("app").join("outputs");
             let apk_path = out_base.join("flutter-apk").join("app-github-release.apk");
             let apk_path_v8a = out_base.join("flutter-apk").join("app-arm64-v8a-github-release.apk");
             let apk_path_v7a = out_base.join("flutter-apk").join("app-armeabi-v7a-github-release.apk");

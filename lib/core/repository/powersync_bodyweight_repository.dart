@@ -1,0 +1,65 @@
+import 'dart:async';
+
+import 'package:blood_pressure_app/domain/domain.dart';
+import 'package:powersync/powersync.dart';
+import 'package:uuid/uuid.dart';
+
+/// PowerSync implementation of [BodyweightRepository].
+class PowerSyncBodyweightRepository extends BodyweightRepository {
+  PowerSyncBodyweightRepository(this._db);
+
+  final PowerSyncDatabase _db;
+  final _uuid = const Uuid();
+  final _controller = StreamController<BodyweightRecord?>.broadcast();
+
+  @override
+  Future<void> add(BodyweightRecord record) async {
+    final timeSec = record.time.secondsSinceEpoch;
+    final existing = await _db.getAll(
+      'SELECT id FROM weights WHERE timestamp_unix_s = ?',
+      [timeSec],
+    );
+    if (existing.isEmpty) {
+      await _db.execute(
+        'INSERT INTO weights (id, timestamp_unix_s, weight_kg, impedance_ohm) '
+        'VALUES (?, ?, ?, ?)',
+        [_uuid.v4(), timeSec, record.weight.kg, record.impedanceOhm],
+      );
+    } else {
+      await _db.execute(
+        'UPDATE weights SET weight_kg = ?, impedance_ohm = ? WHERE id = ?',
+        [record.weight.kg, record.impedanceOhm, existing.first['id']],
+      );
+    }
+    _controller.add(record);
+  }
+
+  @override
+  Future<List<BodyweightRecord>> get(DateRange range) async {
+    final results = await _db.getAll(
+      'SELECT timestamp_unix_s, weight_kg, impedance_ohm FROM weights '
+      'WHERE timestamp_unix_s BETWEEN ? AND ?',
+      [range.startStamp, range.endStamp],
+    );
+    return [
+      for (final r in results)
+        BodyweightRecord(
+          time: DateTimeS.fromSecondsSinceEpoch(r['timestamp_unix_s'] as int),
+          weight: Weight.kg((r['weight_kg'] as num).toDouble()),
+          impedanceOhm: (r['impedance_ohm'] as num?)?.toDouble(),
+        ),
+    ];
+  }
+
+  @override
+  Future<void> remove(BodyweightRecord record) async {
+    await _db.execute(
+      'DELETE FROM weights WHERE timestamp_unix_s = ? AND weight_kg = ?',
+      [record.time.secondsSinceEpoch, record.weight.kg],
+    );
+    _controller.add(null);
+  }
+
+  @override
+  Stream<BodyweightRecord?> subscribe() => _controller.stream;
+}

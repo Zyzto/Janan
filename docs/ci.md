@@ -6,12 +6,13 @@ This is the [Zyzto fork](../FORK.md). I do not own Play Store, F-Droid, Weblate,
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Push to `main`, every PR | Analyze, test, package tests, debug `fdroid` APK |
-| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | Tag `vX.Y.Z` | Tests, signed `github` APK, GitHub Release |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Push to `main`, every PR | Analyze, test, translation JSON check, debug APK |
+| [`.github/workflows/pr.yml`](../.github/workflows/pr.yml) | Pull requests | Extra PR lints, goldens, optional labeled test/build |
+| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | Tag `vYY.0M.MICRO` | Tests, signed APK, GitHub Release |
 
 Obtainium watches those GitHub Releases.
 
-The old upstream workflows (Play Fastlane, golden auto-push, `/build` labels) are gone. Those assumed the official store listing.
+The old upstream workflows (Play Fastlane, workspace package CI) are gone.
 
 ## Secrets
 
@@ -32,37 +33,36 @@ keytool -genkeypair -v \
 base64 -w0 fork-upload.jks
 ```
 
-Paste that into the repo secrets. Keep the jks file off git. `app/android/key.properties` is gitignored.
+Paste that into the repo secrets. Keep the jks file off git. `android/key.properties` is gitignored.
 
 Without those secrets, `Release` fails on purpose. A debug-signed APK must not land on Obtainium.
 
 ## Application id
 
-The tree still ships `com.derdilla.bloodPressureApp`. That id belongs to upstream. This fork's APK uses a different signature, so it cannot update a Play or F-Droid install. Uninstall the store build first, or you get a signature mismatch. Data from the store app does not transfer automatically.
-
-I am not claiming that package name. It is leftover from the fork.
+Janan ships as `com.shenepoy.janan`. It installs next to the upstream app (`com.derdilla.bloodPressureApp`). A store install and this APK cannot replace each other.
 
 ## Cutting a release
 
 1. `main` is green on `CI`.
 2. The secrets above are set.
-3. `version:` in `app/pubspec.yaml` is `X.Y.Z+N`. The tag is `vX.Y.Z`.
+3. `version:` in `pubspec.yaml` is `YY.0M.MICRO+N`. The tag is `vYY.0M.MICRO`.
 
 ```bash
-git tag v1.8.15
-git push origin v1.8.15
+git tag v26.08.0
+git push origin v26.08.0
 ```
 
-4. Actions publishes `blood-pressure-monitor-1.8.15.apk`. Obtainium picks it up.
+4. Actions publishes `janan-26.08.0.apk`. Obtainium picks it up.
+
+See [docs/release-process.md](release-process.md) for CalVer.
 
 ## Local
 
 ```bash
 bash ./scripts/ci/codegen.sh
-cd app
 flutter analyze
 flutter test
-flutter build apk --debug --flavor fdroid
+flutter build apk --debug
 ```
 
-Release signing locally: put `key.properties` under `app/android/` as Flutter documents, then `flutter build apk --release --flavor github`.
+Release signing locally: put `key.properties` under `android/` as Flutter documents, then `flutter build apk --release`.

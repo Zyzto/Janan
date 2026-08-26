@@ -1,0 +1,29 @@
+---
+description: Build APKs with FVM and install via Polyscreen replace so app data is never wiped
+alwaysApply: true
+---
+
+# Build and install with Polyscreen
+
+Never use `flutter install`, `adb uninstall`, or `adb install` without `-r`. `flutter install` uninstalls first and deletes local measurements (`bp.db`, settings).
+
+When the user asks to install on a phone or emulator:
+
+1. Build from the repository root with FVM. Do not start a long-running `flutter run`.
+
+```bash
+fvm flutter build apk --debug
+```
+
+APK path: `build/app/outputs/flutter-apk/app-debug.apk`
+
+2. List devices with Polyscreen `mobile_devices_list`. Use the exact serial. Prefer the physical phone the user has been using. Do not guess when several devices are connected.
+
+3. Install with Polyscreen `mobile_app_install`:
+   - `path`: the APK above (absolute)
+   - `replace`: `true` (in-place update; keeps data)
+   - never set uninstall-only or skip replace
+
+4. If they want it opened, `mobile_app_launch` with `packageName` `com.shenepoy.janan` and `displayId` `0`.
+
+Rebuild before install when source is newer than the APK. If replace fails because of a signature mismatch, stop and tell the user — do not uninstall to force it.

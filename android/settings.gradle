@@ -1,0 +1,50 @@
+pluginManagement {
+    def flutterSdkPath = {
+        def properties = new Properties()
+        file("local.properties").withInputStream { properties.load(it) }
+        def flutterSdkPath = properties.getProperty("flutter.sdk")
+        assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
+        return flutterSdkPath
+    }()
+
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+    id "com.android.application" version "9.1.0" apply false
+    // Pin only — do not apply. AGP 9 built-in Kotlin otherwise ships 2.2.10,
+    // below Flutter 3.47's 2.2.20 minimum.
+    id "org.jetbrains.kotlin.android" version "2.4.0" apply false
+}
+
+include ":app"
+
+// app_settings, bluetooth_low_energy_android, and health still ship
+// `apply plugin: 'kotlin-android'`. Flutter's AGP 9 scanner reads each
+// subproject's buildFile for that line. Use local overlays that compile
+// with built-in Kotlin, but keep the original projectDir so AGP finds
+// src/main/kotlin in the pub-cache (remapping projectDir left those
+// source sets empty and dropped AppSettingsPlugin / HealthPlugin / etc.).
+[
+    'app_settings',
+    'bluetooth_low_energy_android',
+    'health',
+].each { name ->
+    def descriptor
+    try {
+        descriptor = project(":$name")
+    } catch (UnknownProjectException ignored) {
+        return
+    }
+    def overlayBuildFile = new File(settingsDir, "kgp_overlays/${name}/build.gradle")
+    descriptor.buildFileName = descriptor.projectDir.toPath()
+        .relativize(overlayBuildFile.toPath())
+        .toString()
+}

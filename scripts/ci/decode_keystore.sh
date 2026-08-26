@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Write app/android/key.properties from GitHub Actions secrets.
+# Write android/key.properties from GitHub Actions secrets.
 #
 # Reads KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD.
 # This fork does not have derdilla's Play / F-Droid key. Use your own.
@@ -18,11 +18,11 @@ fi
 : "${KEY_ALIAS:?KEY_ALIAS required}"
 KEY_PASSWORD="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
 
-keystore_path="$ROOT_DIR/app/android/release-keystore.jks"
+keystore_path="$ROOT_DIR/android/release-keystore.jks"
 echo "$KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
 
 printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
   "$keystore_path" "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" \
-  > "$ROOT_DIR/app/android/key.properties"
+  > "$ROOT_DIR/android/key.properties"
 
-echo "Wrote app/android/key.properties for alias $KEY_ALIAS"
+echo "Wrote android/key.properties for alias $KEY_ALIAS"

@@ -1,0 +1,29 @@
+import 'package:blood_pressure_app/domain/domain.dart';
+
+/// A unit blood pressure can be in.
+///
+/// While mmHg is more common, some devices use kPa
+enum PressureUnit {
+  /// Millimeters of mercury.
+  mmHg,
+  /// Kilo Pascal
+  kPa;
+
+  /// Create a [PressureUnit.deserialize]able number.
+  int get serialized => switch(this) {
+    PressureUnit.mmHg => 0,
+    PressureUnit.kPa => 1,
+  };
+  /// Decodes a pressure unit from an [serialized] value.
+  static PressureUnit? deserialize(int? encoded) => switch(encoded) {
+    0 => PressureUnit.mmHg,
+    1 => PressureUnit.kPa,
+    _ => null,
+  };
+
+  /// Converts a value to a [Pressure] of this [PressureUnit].
+  Pressure wrap(num value) => switch(this) {
+    PressureUnit.mmHg => Pressure.mmHg(value.toInt()),
+    PressureUnit.kPa => Pressure.kPa(value.toDouble()),
+  };
+}

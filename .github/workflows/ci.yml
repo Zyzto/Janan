@@ -44,64 +44,29 @@ jobs:
       - name: Generate code
         run: bash ./scripts/ci/codegen.sh
 
-      - name: Reject unescaped apostrophes in arb files
+      - name: Check translation JSON files parse
         run: |
-          if grep -E "[^'\"]'[^'\"]" app/lib/l10n/*.arb; then
-            echo "Unescaped apostrophe in an arb file" >&2
-            exit 1
-          fi
+          python3 - <<'PY'
+          import glob, json, sys
+          paths = glob.glob("assets/translations/*.json")
+          if not paths:
+              sys.exit("no translation JSON files")
+          for path in paths:
+              with open(path, encoding="utf-8") as handle:
+                  data = json.load(handle)
+              if not isinstance(data, dict) or not data:
+                  sys.exit(f"{path} is not a non-empty object")
+          print(f"checked {len(paths)} files")
+          PY
 
       - name: Analyze
         run: flutter analyze
-        working-directory: app
 
       - name: Test
         run: flutter test
-        working-directory: app
 
       - name: Golden tests
         run: flutter test --tags gold --run-skipped
-        working-directory: app
-
-  packages:
-    name: Package tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Read Flutter version
-        id: flutter
-        run: echo "version=$(bash ./scripts/ci/flutter_version.sh)" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ steps.flutter.outputs.version }}
-          channel: stable
-          cache: true
-
-      - name: Disable analytics
-        run: flutter config --no-analytics --suppress-analytics
-
-      - name: Install SQLite
-        run: sudo apt-get update && sudo apt-get -y install libsqlite3-dev
-
-      - name: Generate code
-        run: bash ./scripts/ci/codegen.sh
-
-      - name: Test health_data_store
-        run: dart test
-        working-directory: health_data_store
-
-      - name: Test settings_annotation
-        run: flutter test
-        working-directory: settings_annotation
-
-      - name: Analyze settings_annotation
-        run: dart analyze
-        working-directory: settings_annotation
 
   debug-apk:
     name: Debug APK
@@ -124,7 +89,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          build-root-directory: app/android
+          build-root-directory: android
           add-job-summary: on-failure
 
       - name: Set up Flutter
@@ -141,12 +106,11 @@ jobs:
         run: bash ./scripts/ci/codegen.sh
 
       - name: Build debug APK
-        run: flutter build apk --debug --flavor fdroid
-        working-directory: app
+        run: flutter build apk --debug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: blood-pressure-monitor-debug-apk
-          path: app/build/app/outputs/flutter-apk/app-fdroid-debug.apk
+          name: janan-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
