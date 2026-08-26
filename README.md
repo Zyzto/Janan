@@ -66,7 +66,7 @@ Compared to [derdilla/blood-pressure-monitor-fl](https://github.com/derdilla/blo
 | **Name** | Blood pressure monitor | Janan · الجَنَان |
 | **Android id** | `com.derdilla.bloodPressureApp` | `com.shenepoy.janan` |
 | **Install** | Play, F-Droid, GitHub | GitHub Releases + [Obtainium](https://github.com/ImranR98/Obtainium) |
-| **Version** | Semver `1.8.15+57` | CalVer `YY.0M.MICRO` (now `26.08.0+58`) |
+| **Version** | Semver `1.8.15+57` | CalVer `YY.0M.MICRO` (now `26.08.1+59`) |
 | **Layout** | `app/` plus workspace packages | One Flutter app at the repo root |
 
 **Added here**
@@ -106,23 +106,27 @@ What upstream already has and this fork still has: manual input, graphs, CSV / P
 
 ## Screenshots
 
+<div dir="ltr">
 <p align="center">
-  <img src="docs/screenshots/en-light-add.png" alt="Add a reading" width="180" />
-  <img src="docs/screenshots/en-light-home.png" alt="Home" width="180" />
-  <img src="docs/screenshots/en-light-settings.png" alt="Settings" width="180" />
-  <img src="docs/screenshots/en-light-stats.png" alt="Statistics" width="180" />
+  <img src="docs/screenshots/ar-light-home.png" alt="الرئيسية" width="180" />
+  <img src="docs/screenshots/ar-light-stats.png" alt="الإحصاءات" width="180" />
+  <img src="docs/screenshots/ar-light-add.png" alt="إضافة قراءة" width="180" />
+  <img src="docs/screenshots/ar-light-settings.png" alt="الإعدادات" width="180" />
 </p>
+</div>
 
 <details>
-<summary>Dark theme</summary>
+<summary>السمة الداكنة</summary>
+<div dir="ltr">
 <p align="center">
-  <img src="docs/screenshots/en-dark-add.png" alt="Add a reading — dark" width="180" />
-  <img src="docs/screenshots/en-dark-home.png" alt="Home — dark" width="180" />
-  <img src="docs/screenshots/en-dark-settings.png" alt="Settings — dark" width="180" />
-  <img src="docs/screenshots/en-dark-stats.png" alt="Statistics — dark" width="180" />
+  
+  <img src="docs/screenshots/ar-dark-home.png" alt="الرئيسية — داكن" width="180" />
+  <img src="docs/screenshots/ar-dark-stats.png" alt="الإحصاءات — داكن" width="180" />
+  <img src="docs/screenshots/ar-dark-add.png" alt="إضافة قراءة — داكن" width="180" />
+  <img src="docs/screenshots/ar-dark-settings.png" alt="الإعدادات — داكن" width="180" />
 </p>
+</div>
 </details>
-
 ---
 
 ## Install

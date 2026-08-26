@@ -1,5 +1,5 @@
 {
-  "title": "جنان",
+  "title": "الجنان",
   "success": "تم بنجاح: {msg}",
   "loading": "جاري التحميل...",
   "error": "عذراً، حدث خطأ ما: {msg}",
@@ -410,7 +410,7 @@
   "onboardingNext": "التالي",
   "onboardingGetStarted": "لنبدأ",
   "onboardingDone": "تم",
-  "onboardingReplay": "كيف تستخدم جنان",
+  "onboardingReplay": "كيف تستخدم التطبيق",
   "onboardingReplayHint": "أعِد الجولة السريعة في أي وقت",
   "onboardingWelcomeTitle": "قراءاتك تبقى هنا",
   "onboardingWelcomeBody": "تابع ضغط الدم بخصوصية على هذا الجهاز. بلا حساب، بلا سحابة.",
