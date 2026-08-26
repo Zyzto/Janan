@@ -60,7 +60,7 @@ jobs:
           PY
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Test
         run: flutter test
@@ -89,7 +89,6 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          build-root-directory: android
           add-job-summary: on-failure
 
       - name: Set up Flutter

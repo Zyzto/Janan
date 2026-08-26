@@ -74,7 +74,6 @@ class AppShell extends ConsumerWidget {
 
 class _AppShellView extends StatefulWidget {
   const _AppShellView({
-    super.key,
     required this.pages,
     required this.initialTab,
     required this.showWeight,

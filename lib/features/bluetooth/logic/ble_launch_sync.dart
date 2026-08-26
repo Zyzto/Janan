@@ -153,7 +153,7 @@ class BleLaunchSync with Loggable {
   final BodyweightRepository? weightRepo;
 
   /// Backend used when cubits are created here.
-  final BluetoothManager? manager;
+  final BluetoothManager<DiscoveredEventArgs>? manager;
 
   /// Optional [BluetoothCubit] factory for tests.
   final BluetoothCubit Function()? bluetoothCubit;

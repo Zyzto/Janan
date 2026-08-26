@@ -12,7 +12,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_settings_framework/flutter_settings_framework.dart';
-import 'package:blood_pressure_app/domain/domain.dart';
 
 /// Tracks whether the navigator's top route is the home screen.
 class HomePresenceObserver extends NavigatorObserver with ChangeNotifier {
@@ -148,7 +147,7 @@ class BleLaunchSyncHost extends ConsumerStatefulWidget {
   final Widget child;
 
   /// Optional Bluetooth backend for tests.
-  final BluetoothManager? manager;
+  final BluetoothManager<DiscoveredEventArgs>? manager;
 
   /// Optional [BluetoothCubit] factory for tests.
   final BluetoothCubit Function()? bluetoothCubit;

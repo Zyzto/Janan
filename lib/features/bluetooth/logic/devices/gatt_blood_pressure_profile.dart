@@ -6,7 +6,6 @@ import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_gatt_ses
 import 'package:blood_pressure_app/features/bluetooth/logic/devices/ble_name.dart';
 import 'package:blood_pressure_app/logging.dart';
 import 'package:bluetooth_low_energy/bluetooth_low_energy.dart';
-import 'package:flutter/foundation.dart';
 
 /// Standard Blood Pressure Service (`1810` / `2A35`), including Beurer quirks.
 class GattBloodPressureProfile extends BleDeviceProfile with Loggable {
@@ -52,7 +51,6 @@ class GattBloodPressureProfile extends BleDeviceProfile with Loggable {
 
   /// Whether [advertisedName] belongs to a model that sends multi-byte fields
   /// big endian and always includes a user id without setting its flag.
-  @visibleForTesting
   static bool isKnownBigEndianDevice(String? advertisedName) =>
       bleNameContainsAnyToken(advertisedName, const ['BM48', 'BM85', 'ELITE900']);
 

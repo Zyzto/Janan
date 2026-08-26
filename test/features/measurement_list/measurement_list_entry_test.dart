@@ -2,7 +2,6 @@ import 'package:blood_pressure_app/features/measurement_list/measurement_detail_
 import 'package:blood_pressure_app/features/measurement_list/measurement_list_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:blood_pressure_app/domain/domain.dart';
 
 import '../../model/export_import/record_formatter_test.dart';
 import '../../util.dart';

@@ -45,20 +45,15 @@ class _HangingSync extends BleLaunchSync {
 }
 
 class _FakeSync extends BleLaunchSync {
-  _FakeSync(this.result, {this.phases = const []}) : super(
+  _FakeSync(this.result) : super(
     controller: testSettingsController!,
     repo: MockBloodPressureRepository(),
   );
 
   final BleLaunchSyncResult result;
-  final List<BleLaunchSyncProgress> phases;
 
   @override
   Future<BleLaunchSyncResult> run() async {
-    for (final phase in phases) {
-      progress.value = phase;
-      await Future<void>.delayed(Duration.zero);
-    }
     progress.value = BleLaunchSyncProgress(
       phase: BleLaunchSyncPhase.done,
       deviceName: result.deviceName,

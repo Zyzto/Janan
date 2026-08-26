@@ -710,7 +710,6 @@ class _DoseEndButton extends StatelessWidget {
 
 class _RoundStepButton extends StatelessWidget {
   const _RoundStepButton({
-    super.key,
     required this.icon,
     required this.tooltip,
     required this.onPressed,

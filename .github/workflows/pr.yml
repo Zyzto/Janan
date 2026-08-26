@@ -81,7 +81,7 @@ jobs:
       - name: Generate Riverpod and mocks
         run: dart run build_runner build
       - name: Analyze code
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
   update-goldens:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest

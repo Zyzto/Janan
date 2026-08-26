@@ -4,3 +4,4 @@ library;
 export 'package:blood_pressure_app/features/bluetooth/backend/bluetooth_device.dart' show BluetoothDevice;
 export 'package:blood_pressure_app/features/bluetooth/backend/bluetooth_manager.dart' show BluetoothManager;
 export 'package:blood_pressure_app/features/bluetooth/backend/bluetooth_state.dart' show BluetoothAdapterState;
+export 'package:bluetooth_low_energy/bluetooth_low_energy.dart' show DiscoveredEventArgs;

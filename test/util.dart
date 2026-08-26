@@ -656,19 +656,14 @@ MedicineIntake mockIntake(Medicine medicine, {
 );
 
 class MockHealthStore {
-  @override
   BloodPressureRepository bpRepo = MockBloodPressureRepository();
 
-  @override
   MedicineIntakeRepository intakeRepo = MockMedicineIntakeRepository();
 
-  @override
   MedicineRepository medRepo = MockMedicineRepository();
 
-  @override
   NoteRepository noteRepo = MockNoteRepository();
 
-  @override
   BodyweightRepository weightRepo = MockBodyweightRepository();
 }
 

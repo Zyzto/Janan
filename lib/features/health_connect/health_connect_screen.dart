@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_settings_framework/flutter_settings_framework.dart';
 import 'package:health/health.dart';
-import 'package:blood_pressure_app/domain/domain.dart';
 
 class HealthConnectScreen extends ConsumerStatefulWidget {
   const HealthConnectScreen({super.key});

@@ -3,7 +3,6 @@ import 'package:blood_pressure_app/core/settings/storage_providers.dart';
 import 'package:blood_pressure_app/features/export_import/model/column.dart';
 import 'package:blood_pressure_app/features/export_import/ui/add_export_column_dialog.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:blood_pressure_app/model/storage/export_columns_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
