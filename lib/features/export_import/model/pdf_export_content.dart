@@ -76,6 +76,7 @@ class PdfExportContent {
     required this.statistics,
     required this.headers,
     required this.rows,
+    this.columnTypes = const [],
   });
 
   /// Build PDF strings from already-filtered, oldest-first [entries].
@@ -99,6 +100,7 @@ class PdfExportContent {
       title: _title(entries, analyzer, dateFormatter),
       statistics: _statistics(snapshot, pressureUnit, dateFormatter),
       headers: columns.map((column) => column.userTitle()).toList(),
+      columnTypes: columns.map((column) => column.restoreAbleType).toList(),
       rows: [
         for (final entry in entries)
           [
@@ -120,6 +122,9 @@ class PdfExportContent {
 
   /// One row per exported entry, oldest first.
   final List<List<String>> rows;
+
+  /// Data type for each logical export column, used for script-aware layout.
+  final List<RowDataFieldType?> columnTypes;
 }
 
 String _title(

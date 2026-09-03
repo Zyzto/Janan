@@ -1,4 +1,5 @@
 import 'package:blood_pressure_app/features/export_import/model/export_preset.dart';
+import 'package:blood_pressure_app/features/export_import/model/import_field_type.dart';
 import 'package:blood_pressure_app/features/export_import/model/pdf_export_content.dart';
 import 'package:blood_pressure_app/features/settings/app_settings.dart';
 import 'package:blood_pressure_app/logging.dart';
@@ -184,6 +185,9 @@ class PdfConverter with Loggable {
     final rows = [
       for (final row in content.rows) _orderedTableRow(row, pageDirection),
     ];
+    final columnTypes = pageDirection == pw.TextDirection.rtl
+        ? content.columnTypes.reversed.toList()
+        : content.columnTypes;
     return pw.TableHelper.fromTextArray(
       border: null,
       cellAlignment: cellAlignment,
@@ -201,6 +205,35 @@ class PdfConverter with Loggable {
       headerDirection: pageDirection,
       cellBuilder: (index, cell, rowNum) {
         final text = cell.toString();
+        if (pageDirection == pw.TextDirection.rtl &&
+            index < columnTypes.length &&
+            columnTypes[index] == RowDataFieldType.intakes &&
+            _arabicText.hasMatch(text)) {
+          final parts = splitPdfMedicineIntakeCell(text);
+          if (parts != null) {
+            return pw.Row(
+              mainAxisSize: pw.MainAxisSize.min,
+              children: [
+                pw.Text(
+                  parts.dose,
+                  style: pw.TextStyle(
+                    fontSize: pdfSettings.cellFontSize,
+                    font: fonts.latin,
+                  ),
+                  textDirection: pw.TextDirection.ltr,
+                ),
+                pw.Text(
+                  parts.medicine,
+                  style: pw.TextStyle(
+                    fontSize: pdfSettings.cellFontSize,
+                    font: fonts.fontFor(parts.medicine) ?? fonts.arabic,
+                  ),
+                  textDirection: pw.TextDirection.rtl,
+                ),
+              ],
+            );
+          }
+        }
         return pw.Text(
           text,
           style: pw.TextStyle(
@@ -234,6 +267,15 @@ class PdfConverter with Loggable {
       data: rows,
     );
   }
+}
+
+/// Split a formatted medicine intake into an Arabic medicine name and an
+/// LTR parenthesized dose so bidi mirroring cannot reverse the punctuation.
+({String medicine, String dose})? splitPdfMedicineIntakeCell(String text) {
+  if (!text.endsWith(')')) return null;
+  final open = text.lastIndexOf('(');
+  if (open <= 0 || open == text.length - 1) return null;
+  return (medicine: text.substring(0, open), dose: text.substring(open));
 }
 
 List<List<String>> _orderedTableData(

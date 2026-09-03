@@ -107,4 +107,11 @@ void main() {
       ),
     );
   });
+
+  test('keeps Arabic medicine dose parentheses in logical order', () {
+    final parts = splitPdfMedicineIntakeCell('دواء(10.0)');
+
+    expect(parts?.medicine, 'دواء');
+    expect(parts?.dose, '(10.0)');
+  });
 }
