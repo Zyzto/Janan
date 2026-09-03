@@ -5,6 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../util.dart';
 
 void main() {
+  test('builds portable timestamped filenames', () {
+    final name = exportFileBaseName(
+      addTimestamp: true,
+      now: DateTime(2026, 8, 30, 15, 39, 57, 101, 765),
+    );
+
+    expect(name, 'blood_press_2026-08-30_15-39-57-101765');
+    expect(name, isNot(contains(RegExp(r'[:/\\]'))));
+    expect(exportFileBaseName(addTimestamp: false), 'blood_press');
+  });
+
   testWidgets('Shows share icon and text when sharing', (tester) async {
     await pumpApp(tester, await materialApp(ExportButton(share: true)));
 
@@ -13,7 +24,9 @@ void main() {
     expect(find.text('EXPORT'), findsNothing);
     expect(find.text('SHARE'), findsOneWidget);
   });
-  testWidgets('Shows download icon and export text when not sharing', (tester) async {
+  testWidgets('Shows download icon and export text when not sharing', (
+    tester,
+  ) async {
     await pumpApp(tester, await materialApp(ExportButton(share: false)));
 
     expect(find.byIcon(Icons.file_download_outlined), findsOneWidget);

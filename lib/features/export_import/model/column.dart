@@ -1,16 +1,21 @@
 import 'dart:convert';
 
+import 'package:blood_pressure_app/domain/domain.dart';
 import 'package:blood_pressure_app/features/export_import/model/import_field_type.dart';
 import 'package:blood_pressure_app/features/export_import/model/record_formatter.dart';
 import 'package:blood_pressure_app/model/combined_entry.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:blood_pressure_app/domain/domain.dart';
 
 // TODO: respect preferred Pressure unit
 
 /// Converters for [BloodPressureRecord] attributes.
 class NativeColumn extends ExportColumn {
-  NativeColumn._create(this._csvTitle, this._restoreableType, this._encode, this._decode);
+  NativeColumn._create(
+    this._csvTitle,
+    this._restoreableType,
+    this._encode,
+    this._decode,
+  );
 
   /// All native columns that exist.
   static final List<NativeColumn> allColumns = [
@@ -31,8 +36,10 @@ class NativeColumn extends ExportColumn {
     (entry) => entry.time.millisecondsSinceEpoch.toString(),
     (pattern) {
       final value = int.tryParse(pattern);
-      return (value == null) ? null : DateTime.fromMillisecondsSinceEpoch(value);
-    }
+      return (value == null)
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(value);
+    },
   );
   static final NativeColumn systolic = NativeColumn._create(
     'systolic',
@@ -65,7 +72,7 @@ class NativeColumn extends ExportColumn {
     (pattern) {
       final value = int.tryParse(pattern);
       return value;
-    }
+    },
   );
   static final NativeColumn needlePin = NativeColumn._create(
     'needlePin',
@@ -77,20 +84,19 @@ class NativeColumn extends ExportColumn {
         if (json is! Map<String, dynamic>) return null;
         if (json.containsKey('color')) {
           final value = json['color'];
-          return (value is int)
-            ? value
-            : null;
+          return (value is int) ? value : null;
         }
       } on FormatException {
         // ignore
       }
       return null;
-    }
+    },
   );
   static final NativeColumn intakes = NativeColumn._create(
     'intakes',
     RowDataFieldType.intakes,
-    (entry) => '${entry.intake?.medicine.designation}(${entry.intake?.dosis.mg})',
+    (entry) =>
+        '${entry.intake?.medicine.designation}(${entry.intake?.dosis.mg})',
     (String pattern) {
       final intakes = <(String, double?)>[];
       for (final e in pattern.split('|')) {
@@ -102,18 +108,19 @@ class NativeColumn extends ExportColumn {
         intakes.add((med, dosis));
       }
       return intakes;
-    }
+    },
   );
   static final NativeColumn bodyweight = NativeColumn._create(
     'bodyweight',
     RowDataFieldType.weightKg,
-      (entry) => entry.weight?.weight.kg.toString() ?? '',
-      double.tryParse,
+    (entry) => entry.weight?.weight.kg.toString() ?? '',
+    double.tryParse,
   );
-  
+
   final String _csvTitle;
   final RowDataFieldType _restoreableType;
   final String Function(CombinedEntry entry) _encode;
+
   /// Function to attempt decoding.
   ///
   /// Must either return null or the type indicated by [_restoreableType].
@@ -143,16 +150,18 @@ class NativeColumn extends ExportColumn {
 
   @override
   String userTitle() => _restoreableType.localize();
-
-
 }
 
 /// Useful columns that are present by default and recreatable through a formatPattern.
 class BuildInColumn extends ExportColumn {
   /// Creates a build in column and adds it to allColumns.
-  BuildInColumn._create(this.internalIdentifier, this.csvTitle, String formatString, this._userTitle)
-      : _formatter = ScriptedFormatter(formatString);
-  
+  BuildInColumn._create(
+    this.internalIdentifier,
+    this.csvTitle,
+    String formatString,
+    this._userTitle,
+  ) : _formatter = ScriptedFormatter(formatString);
+
   static final List<ExportColumn> allColumns = [
     pulsePressure,
     formattedTime,
@@ -165,67 +174,69 @@ class BuildInColumn extends ExportColumn {
     mhWeight,
     mhOxygen,
   ];
-  
+
   static final pulsePressure = BuildInColumn._create(
-      'buildin.pulsePressure',
-      'pulsePressure',
-      r'{{$SYS-$DIA}}', 
-      () => 'pulsePressure'.tr(),
+    'buildin.pulsePressure',
+    'pulsePressure',
+    r'{{$SYS-$DIA}}',
+    () => 'pulsePressure'.tr(),
   );
   static final formattedTime = TimeColumn.explicit(
-      'buildin.formattedTime',
-      'Time',
-      'dd MMM yyyy, HH:mm',
+    'buildin.formattedTime',
+    'Time',
+    'dd MMM yyyy, HH:mm',
+    null,
+    'time',
   );
 
   // my heart columns
   static final mhDate = TimeColumn.explicit(
-      'buildin.mhDate',
-      'DATUM',
-      r'yyyy-MM-dd HH:mm:ss',
-      '"My Heart" export time',
+    'buildin.mhDate',
+    'DATUM',
+    r'yyyy-MM-dd HH:mm:ss',
+    '"My Heart" export time',
   );
   static final mhSys = BuildInColumn._create(
-      'buildin.mhSys',
-      'SYSTOLE',
-      r'$SYS',
-      () => '"My Heart" export sys',
+    'buildin.mhSys',
+    'SYSTOLE',
+    r'$SYS',
+    () => '"My Heart" export sys',
   );
   static final mhDia = BuildInColumn._create(
-      'buildin.mhDia',
-      'DIASTOLE',
-      r'$DIA',
-      () => '"My Heart" export dia',
+    'buildin.mhDia',
+    'DIASTOLE',
+    r'$DIA',
+    () => '"My Heart" export dia',
   );
   static final mhPul = BuildInColumn._create(
-      'buildin.mhPul',
-      'PULSE',
-      r'$PUL',
-      () => '"My Heart" export pul',
+    'buildin.mhPul',
+    'PULSE',
+    r'$PUL',
+    () => '"My Heart" export pul',
   );
   static final mhDesc = BuildInColumn._create(
-      'buildin.mhDesc',
-      'Beschreibung',
-      r'null',
-      () => '"My Heart" export description',
+    'buildin.mhDesc',
+    'Beschreibung',
+    r'null',
+    () => '"My Heart" export description',
   );
   static final mhTags = BuildInColumn._create(
-      'buildin.mhTags',
-      'Tags',
-      r'',
-      () => '"My Heart" export tags',
+    'buildin.mhTags',
+    'Tags',
+    r'',
+    () => '"My Heart" export tags',
   );
   static final mhWeight = BuildInColumn._create(
-      'buildin.mhWeight',
-      'Gewicht',
-      r'0.0',
-      () => '"My Heart" export weight',
+    'buildin.mhWeight',
+    'Gewicht',
+    r'0.0',
+    () => '"My Heart" export weight',
   );
   static final mhOxygen = BuildInColumn._create(
-      'buildin.mhOxygen',
-      'Sauerstoffsättigung',
-      r'0',
-      () => '"My Heart" export oxygen',
+    'buildin.mhOxygen',
+    'Sauerstoffsättigung',
+    r'0',
+    () => '"My Heart" export oxygen',
   );
 
   @override
@@ -242,7 +253,8 @@ class BuildInColumn extends ExportColumn {
   final Formatter _formatter;
 
   @override
-  (RowDataFieldType, dynamic)? decode(String pattern) => _formatter.decode(pattern);
+  (RowDataFieldType, dynamic)? decode(String pattern) =>
+      _formatter.decode(pattern);
 
   @override
   String encode(CombinedEntry entry) => _formatter.encode(entry);
@@ -262,13 +274,16 @@ class UserColumn extends ExportColumn {
   ///
   /// [internalIdentifier] is automatically prefixed with 'userColumn.' during
   /// object creation.
-  UserColumn(String internalIdentifier, this.csvTitle, String formatPattern):
-        formatter = ScriptedFormatter(formatPattern),
-        internalIdentifier = 'userColumn.$internalIdentifier';
+  UserColumn(String internalIdentifier, this.csvTitle, String formatPattern)
+    : formatter = ScriptedFormatter(formatPattern),
+      internalIdentifier = 'userColumn.$internalIdentifier';
 
   /// UserColumn constructor that keeps the internalIdentifier.
-  UserColumn.explicit(this.internalIdentifier, this.csvTitle, String formatPattern):
-        formatter = ScriptedFormatter(formatPattern);
+  UserColumn.explicit(
+    this.internalIdentifier,
+    this.csvTitle,
+    String formatPattern,
+  ) : formatter = ScriptedFormatter(formatPattern);
 
   /// Unique identifier of userColumn.
   ///
@@ -287,7 +302,8 @@ class UserColumn extends ExportColumn {
   final Formatter formatter;
 
   @override
-  (RowDataFieldType, dynamic)? decode(String pattern) => formatter.decode(pattern);
+  (RowDataFieldType, dynamic)? decode(String pattern) =>
+      formatter.decode(pattern);
 
   @override
   String encode(CombinedEntry entry) => formatter.encode(entry);
@@ -307,12 +323,19 @@ class TimeColumn extends ExportColumn {
   ///
   /// [internalIdentifier] is automatically prefixed with 'userColumn.' during
   /// object creation.
-  TimeColumn(this.csvTitle, this.formatPattern):
-      _localization = null,
+  TimeColumn(this.csvTitle, this.formatPattern)
+    : _localization = null,
+      _localizationKey = null,
       internalIdentifier = 'timeFormatter.$csvTitle';
 
   /// UserColumn constructor that does not change the [internalIdentifier].
-  TimeColumn.explicit(this.internalIdentifier, this.csvTitle, this.formatPattern, [this._localization]);
+  TimeColumn.explicit(
+    this.internalIdentifier,
+    this.csvTitle,
+    this.formatPattern, [
+    this._localization,
+    this._localizationKey,
+  ]);
 
   ScriptedTimeFormatter? _formatter;
 
@@ -320,6 +343,10 @@ class TimeColumn extends ExportColumn {
   final String csvTitle;
 
   final String? _localization;
+
+  /// Optional localization key for built-in columns whose title follows the
+  /// active app language.
+  final String? _localizationKey;
 
   @override
   (RowDataFieldType, dynamic)? decode(String pattern) {
@@ -347,8 +374,7 @@ class TimeColumn extends ExportColumn {
   RowDataFieldType? get restoreAbleType => RowDataFieldType.timestamp;
 
   @override
-  String userTitle() => _localization ?? csvTitle;
-
+  String userTitle() => _localizationKey?.tr() ?? _localization ?? csvTitle;
 }
 
 /// Interface for converters that allow formatting and provide metadata.

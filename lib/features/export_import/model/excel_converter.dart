@@ -1,12 +1,17 @@
+import 'package:blood_pressure_app/domain/domain.dart';
 import 'package:blood_pressure_app/features/export_import/model/export_preset.dart';
 import 'package:blood_pressure_app/model/combined_entry.dart';
 import 'package:blood_pressure_app/model/storage/storage.dart';
-import 'package:blood_pressure_app/domain/domain.dart';
 
 /// Utility class to convert [CombinedEntry]s to xls files.
 class ExcelConverter {
   /// Initialize object to convert [CombinedEntry]s to xls files.
-  ExcelConverter(this.settings, this.availableColumns, this.availableMedicines, this.exportSettings);
+  ExcelConverter(
+    this.settings,
+    this.availableColumns,
+    this.availableMedicines,
+    this.exportSettings,
+  );
 
   /// Settings that apply for exports.
   final ExcelExportSettings settings;
@@ -20,15 +25,14 @@ class ExcelConverter {
   final ExportSettings exportSettings;
 
   /// Create the contents of a xls file from passed records.
-  String create(List<CombinedEntry> entries) { // FIXME: update these
+  String create(List<CombinedEntry> entries) {
+    // FIXME: update these
     final preset = exportSettings.getPresetById(settings.activePreset);
     if (preset == null) return 'Error: No such preset: $preset';
     final columns = availableColumns.resolveColumns(preset.columns);
-    final table = entries.map(
-          (entry) => columns.map(
-            (column) => column.encode(entry),
-      ).toList(),
-    ).toList();
+    final table = entries
+        .map((entry) => columns.map((column) => column.encode(entry)).toList())
+        .toList();
 
     table.insert(0, columns.map((c) => c.csvTitle).toList());
 
@@ -43,14 +47,41 @@ String _createXls(List<List<String>> data) {
     buff.write('<Row ss:Height="12.816">');
     for (final cell in row) {
       final num = int.tryParse(cell) != null || double.tryParse(cell) != null;
-      buff.write('<Cell>'
-          '<Data ss:Type="${num ? 'Number' : 'String'}">$cell</Data>'
-          '</Cell>');
+      final value = _escapeXmlText(cell);
+      buff.write(
+        '<Cell>'
+        '<Data ss:Type="${num ? 'Number' : 'String'}">$value</Data>'
+        '</Cell>',
+      );
     }
     buff.write('</Row>');
   }
   buff.write(_postData);
   return buff.toString();
+}
+
+String _escapeXmlText(String value) {
+  final escaped = StringBuffer();
+  for (final rune in value.runes) {
+    switch (rune) {
+      case 0x26:
+        escaped.write('&amp;');
+      case 0x3c:
+        escaped.write('&lt;');
+      case 0x3e:
+        escaped.write('&gt;');
+      default:
+        final validXmlCharacter =
+            rune == 0x09 ||
+            rune == 0x0a ||
+            rune == 0x0d ||
+            (rune >= 0x20 && rune <= 0xd7ff) ||
+            (rune >= 0xe000 && rune <= 0xfffd) ||
+            (rune >= 0x10000 && rune <= 0x10ffff);
+        escaped.writeCharCode(validXmlCharacter ? rune : 0xfffd);
+    }
+  }
+  return escaped.toString();
 }
 
 const _preData = '''

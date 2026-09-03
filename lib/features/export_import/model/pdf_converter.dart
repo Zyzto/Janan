@@ -1,6 +1,3 @@
-import 'dart:typed_data';
-import 'dart:ui';
-
 import 'package:blood_pressure_app/features/export_import/model/export_preset.dart';
 import 'package:blood_pressure_app/features/export_import/model/pdf_export_content.dart';
 import 'package:blood_pressure_app/features/settings/app_settings.dart';
@@ -10,13 +7,21 @@ import 'package:blood_pressure_app/model/storage/export_columns_store.dart';
 import 'package:blood_pressure_app/model/storage/export_pdf_settings.dart';
 import 'package:blood_pressure_app/model/storage/export_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 /// Utility class for creating pdf files.
 class PdfConverter with Loggable {
   /// Create pdf builder.
-  PdfConverter(this.pdfSettings, this.settings, this.availableColumns, this.exportSettings);
+  PdfConverter(
+    this.pdfSettings,
+    this.settings,
+    this.availableColumns,
+    this.exportSettings, {
+    String? locale,
+  }) : locale = locale ?? Intl.defaultLocale ?? 'en';
 
   /// pdf specific settings.
   final PdfExportSettings pdfSettings;
@@ -29,24 +34,41 @@ class PdfConverter with Loggable {
 
   final ExportSettings exportSettings;
 
+  /// Locale used for dates and page direction.
+  final String locale;
+
   /// Create a pdf from a record list.
   Future<Uint8List> create(List<CombinedEntry> entries) async {
-    final pdf = pw.Document(
-      creator: 'Janan',
-    );
+    await initializeDateFormatting(locale);
+    final pdf = pw.Document(creator: 'Janan');
     final content = _content(entries);
-    pdf.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      build: (pw.Context context) => [
-        if (pdfSettings.exportTitle)
-          _buildPdfTitle(content.title),
-        if (pdfSettings.exportStatistics)
-          _buildPdfStatistics(content.statistics),
-        if (pdfSettings.exportData)
-          _buildPdfTable(content),
-      ],
-      maxPages: 100,
-    ),);
+    final fonts = await _loadPdfFonts();
+    final theme = fonts.themeFor(locale);
+    final isRtl = locale.split(RegExp('[-_]')).first == 'ar';
+    final pageDirection = isRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr;
+    final cellAlignment = isRtl
+        ? pw.Alignment.centerRight
+        : pw.Alignment.centerLeft;
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        theme: theme,
+        textDirection: pageDirection,
+        build: (pw.Context context) => [
+          if (pdfSettings.exportTitle)
+            _buildPdfTitle(content.title, pageDirection),
+          if (pdfSettings.exportStatistics)
+            _buildPdfStatistics(
+              content.statistics,
+              cellAlignment,
+              pageDirection,
+            ),
+          if (pdfSettings.exportData)
+            _buildPdfTable(content, cellAlignment, pageDirection, fonts),
+        ],
+        maxPages: 100,
+      ),
+    );
     return pdf.save();
   }
 
@@ -60,22 +82,43 @@ class PdfConverter with Loggable {
     return PdfExportContent.from(
       entries: entries,
       dateFormatString: settings.dateFormatString,
+      locale: locale,
       pressureUnit: settings.preferredPressureUnit,
       weightUnit: settings.weightUnit,
       columns: columns,
     );
   }
 
-  pw.Widget _buildPdfTitle(String title) => pw.Padding(
-    padding: const pw.EdgeInsets.only(bottom: 8),
-    child: pw.Text(
-      title,
-      style: const pw.TextStyle(fontSize: 16),
-    ),
-  );
+  pw.Widget _buildPdfTitle(String title, pw.TextDirection pageDirection) =>
+      pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 8),
+        child: pw.Text(
+          title,
+          style: const pw.TextStyle(fontSize: 16),
+          textDirection: _textDirectionFor(title, pageDirection),
+        ),
+      );
 
-  pw.Widget _buildPdfStatistics(PdfExportStatistics statistics) =>
-    pw.Container(
+  pw.Widget _buildPdfStatistics(
+    PdfExportStatistics statistics,
+    pw.Alignment cellAlignment,
+    pw.TextDirection pageDirection,
+  ) {
+    final unitLabel = pageDirection == pw.TextDirection.rtl
+        ? _rtlUnitLabel(statistics.unitLabel)
+        : statistics.unitLabel;
+    final unitLine = 'pdfExportUnit'.tr(namedArgs: {'unit': unitLabel});
+    final latestLine = statistics.latest == null
+        ? null
+        : 'pdfLatestReading'.tr(
+            namedArgs: {
+              'sys': statistics.latest!.sys,
+              'dia': statistics.latest!.dia,
+              'pul': statistics.latest!.pul,
+              'time': statistics.latest!.time,
+            },
+          );
+    return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 16),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -83,33 +126,30 @@ class PdfConverter with Loggable {
           pw.Text(
             statistics.activityLine,
             style: const pw.TextStyle(fontSize: 10),
+            textDirection: _textDirectionFor(
+              statistics.activityLine,
+              pageDirection,
+            ),
           ),
           pw.SizedBox(height: 4),
           pw.Text(
-            'pdfExportUnit'.tr(namedArgs: {
-              'unit': statistics.unitLabel,
-            }),
+            unitLine,
             style: const pw.TextStyle(fontSize: 10),
+            textDirection: _textDirectionFor(unitLine, pageDirection),
           ),
-          if (statistics.latest != null) ...[
+          if (latestLine != null) ...[
             pw.SizedBox(height: 6),
             pw.Text(
-              'pdfLatestReading'.tr(namedArgs: {
-                'sys': statistics.latest!.sys,
-                'dia': statistics.latest!.dia,
-                'pul': statistics.latest!.pul,
-                'time': statistics.latest!.time,
-              }),
+              latestLine,
               style: const pw.TextStyle(fontSize: 10),
+              textDirection: _textDirectionFor(latestLine, pageDirection),
             ),
           ],
           pw.SizedBox(height: 10),
           pw.Text(
             'dashboardAverages'.tr(),
-            style: pw.TextStyle(
-              fontSize: 11,
-              fontWeight: pw.FontWeight.bold,
-            ),
+            style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+            textDirection: pageDirection,
           ),
           pw.SizedBox(height: 6),
           pw.TableHelper.fromTextArray(
@@ -119,17 +159,34 @@ class PdfConverter with Loggable {
               fontSize: 9,
             ),
             cellStyle: const pw.TextStyle(fontSize: 9),
-            cellAlignment: pw.Alignment.centerLeft,
-            data: statistics.table,
+            cellAlignment: cellAlignment,
+            headerDirection: pageDirection,
+            tableDirection: pageDirection,
+            data: _orderedTableData(statistics.table, pageDirection),
           ),
         ],
       ),
     );
+  }
 
-  pw.Widget _buildPdfTable(PdfExportContent content) =>
-    pw.TableHelper.fromTextArray(
+  pw.Widget _buildPdfTable(
+    PdfExportContent content,
+    pw.Alignment cellAlignment,
+    pw.TextDirection pageDirection,
+    _PdfFonts fonts,
+  ) {
+    final headerStyle = pw.TextStyle(
+      color: PdfColors.black,
+      fontSize: pdfSettings.headerFontSize,
+      fontWeight: pw.FontWeight.bold,
+    );
+    final headers = _orderedTableRow(content.headers, pageDirection);
+    final rows = [
+      for (final row in content.rows) _orderedTableRow(row, pageDirection),
+    ];
+    return pw.TableHelper.fromTextArray(
       border: null,
-      cellAlignment: pw.Alignment.centerLeft,
+      cellAlignment: cellAlignment,
       headerDecoration: const pw.BoxDecoration(
         border: pw.Border(bottom: pw.BorderSide()),
       ),
@@ -137,16 +194,22 @@ class PdfConverter with Loggable {
       cellHeight: pdfSettings.cellHeight,
       cellAlignments: {
         for (final v in List.generate(content.headers.length, (idx) => idx))
-          v: pw.Alignment.centerLeft,
+          v: cellAlignment,
       },
-      headerStyle: pw.TextStyle(
-        color: PdfColors.black,
-        fontSize: pdfSettings.headerFontSize,
-        fontWeight: pw.FontWeight.bold,
-      ),
-      cellStyle: pw.TextStyle(
-        fontSize: pdfSettings.cellFontSize,
-      ),
+      headerStyle: headerStyle,
+      cellStyle: pw.TextStyle(fontSize: pdfSettings.cellFontSize),
+      headerDirection: pageDirection,
+      cellBuilder: (index, cell, rowNum) {
+        final text = cell.toString();
+        return pw.Text(
+          text,
+          style: pw.TextStyle(
+            fontSize: pdfSettings.cellFontSize,
+            font: fonts.fontFor(text),
+          ),
+          textDirection: _textDirectionFor(text, pageDirection),
+        );
+      },
       headerCellDecoration: pw.BoxDecoration(
         border: pw.Border(
           bottom: pw.BorderSide(
@@ -157,17 +220,135 @@ class PdfConverter with Loggable {
       ),
       rowDecoration: const pw.BoxDecoration(
         border: pw.Border(
-          bottom: pw.BorderSide(
-            color: PdfColors.blueGrey,
-            width: .5,
-          ),
+          bottom: pw.BorderSide(color: PdfColors.blueGrey, width: .5),
         ),
       ),
-      headers: content.headers,
-      data: content.rows,
+      headers: [
+        for (final text in headers)
+          pw.Text(
+            text,
+            style: headerStyle.copyWith(font: fonts.fontFor(text)),
+            textDirection: _textDirectionFor(text, pageDirection),
+          ),
+      ],
+      data: rows,
     );
+  }
+}
+
+List<List<String>> _orderedTableData(
+  List<List<String>> data,
+  pw.TextDirection direction,
+) => [for (final row in data) _orderedTableRow(row, direction)];
+
+List<String> _orderedTableRow(List<String> row, pw.TextDirection direction) =>
+    direction == pw.TextDirection.rtl ? row.reversed.toList() : row;
+
+final _arabicText = RegExp(r'[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]');
+final _tamilText = RegExp(r'[\u0b80-\u0bff]');
+final _chineseText = RegExp(r'[\u3400-\u4dbf\u4e00-\u9fff]');
+
+String _rtlUnitLabel(String value) => switch (value) {
+  'mmHg' => 'مم زئبق',
+  'kPa' => 'كيلوباسكال',
+  _ => value,
+};
+
+pw.TextDirection _textDirectionFor(
+  String text,
+  pw.TextDirection pageDirection,
+) {
+  if (text.trim().isEmpty) return pageDirection;
+  return _arabicText.hasMatch(text)
+      ? pw.TextDirection.rtl
+      : pw.TextDirection.ltr;
 }
 
 extension _PdfCompatability on Color {
-  PdfColor toPdfColor() => PdfColor(r / 256, g / 256, b / 256, a);
+  PdfColor toPdfColor() => PdfColor(r, g, b, a);
+}
+
+Future<_PdfFonts>? _pdfFonts;
+
+/// Load fonts that cover every locale Janan ships, plus multilingual notes.
+Future<_PdfFonts> _loadPdfFonts() => _pdfFonts ??= _readPdfFonts();
+
+Future<_PdfFonts> _readPdfFonts() async => _PdfFonts(
+  latin: pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'),
+  ),
+  latinBold: pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'),
+  ),
+  arabic: pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSansArabic-Regular.ttf'),
+  ),
+  arabicBold: pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSansArabic-Bold.ttf'),
+  ),
+  tamil: pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSansTamil-Regular.ttf'),
+  ),
+  tamilBold: pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSansTamil-Bold.ttf'),
+  ),
+  chinese: pw.Font.ttf(await rootBundle.load('assets/fonts/NotoSansSC.ttf')),
+);
+
+class _PdfFonts {
+  const _PdfFonts({
+    required this.latin,
+    required this.latinBold,
+    required this.arabic,
+    required this.arabicBold,
+    required this.tamil,
+    required this.tamilBold,
+    required this.chinese,
+  });
+
+  final pw.Font latin;
+  final pw.Font latinBold;
+  final pw.Font arabic;
+  final pw.Font arabicBold;
+  final pw.Font tamil;
+  final pw.Font tamilBold;
+  final pw.Font chinese;
+
+  /// Pick a complex-script font as the primary font for user-entered cells.
+  /// This preserves shaping even when a note's script differs from the app
+  /// locale. A null result inherits the locale-aware theme font.
+  pw.Font? fontFor(String text) {
+    if (_arabicText.hasMatch(text)) return arabic;
+    if (_tamilText.hasMatch(text)) return tamil;
+    if (_chineseText.hasMatch(text)) return chinese;
+    return null;
+  }
+
+  pw.ThemeData themeFor(String locale) {
+    final language = locale.split(RegExp('[-_]')).first;
+    return switch (language) {
+      // Complex scripts must be the primary font. Using them only as a
+      // fallback splits the text into separate glyph runs and breaks shaping.
+      'ar' => pw.ThemeData.withFont(
+        base: arabic,
+        bold: arabicBold,
+        fontFallback: [latin, tamil, chinese],
+      ),
+      'ta' => pw.ThemeData.withFont(
+        base: tamil,
+        bold: tamilBold,
+        fontFallback: [latin, arabic, chinese],
+      ),
+      'zh' => pw.ThemeData.withFont(
+        base: chinese,
+        bold: chinese,
+        fontFallback: [latin, arabic, tamil],
+      ),
+      _ => pw.ThemeData.withFont(
+        base: latin,
+        bold: latinBold,
+        fontFallback: [arabic, tamil, chinese],
+      ),
+    };
+  }
 }

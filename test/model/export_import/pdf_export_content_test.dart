@@ -7,11 +7,16 @@ import 'package:blood_pressure_app/model/storage/export_columns_store.dart';
 import 'package:blood_pressure_app/model/weight_unit.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:blood_pressure_app/domain/domain.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'record_formatter_test.dart';
 
 void main() {
-  final columns = ExportColumnsManager().resolveColumns(ExportPreset.appPdf.columns);
+  setUpAll(() => initializeDateFormatting('en'));
+
+  final columns = ExportColumnsManager().resolveColumns(
+    ExportPreset.appPdf.columns,
+  );
 
   PdfExportContent contentOf(
     List<CombinedEntry> entries, {
@@ -20,6 +25,7 @@ void main() {
   }) => PdfExportContent.from(
     entries: entries,
     dateFormatString: 'yyyy-MM-dd',
+    locale: 'en',
     pressureUnit: unit,
     weightUnit: weightUnit,
     columns: columns,
@@ -63,7 +69,10 @@ void main() {
     expect(mmHg.rows.single[2], '80');
     expect(mmHg.statistics.table[1][1], '120');
     expect(kPa.rows.single[1], isNot('120'));
-    expect(kPa.rows.single[1], formatDashboardPressure(entry.sys, PressureUnit.kPa));
+    expect(
+      kPa.rows.single[1],
+      formatDashboardPressure(entry.sys, PressureUnit.kPa),
+    );
     expect(kPa.statistics.table[1][1], kPa.rows.single[1]);
   });
 

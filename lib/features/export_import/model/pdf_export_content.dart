@@ -82,6 +82,7 @@ class PdfExportContent {
   factory PdfExportContent.from({
     required List<CombinedEntry> entries,
     required String dateFormatString,
+    String? locale,
     required PressureUnit pressureUnit,
     required WeightUnit weightUnit,
     required List<ExportColumn> columns,
@@ -89,7 +90,10 @@ class PdfExportContent {
     final newestFirst = entries.reversed.toList();
     final snapshot = DashboardSnapshot.from(entriesNewestFirst: newestFirst);
     final analyzer = snapshot.period;
-    final dateFormatter = WesternDateFormat(dateFormatString, Intl.defaultLocale);
+    final dateFormatter = WesternDateFormat(
+      dateFormatString,
+      locale ?? Intl.defaultLocale ?? 'en',
+    );
 
     return PdfExportContent(
       title: _title(entries, analyzer, dateFormatter),
@@ -123,13 +127,16 @@ String _title(
   BloodPressureAnalyzer analyzer,
   DateFormat dateFormatter,
 ) {
-  final start = analyzer.firstDay ?? (entries.isEmpty ? null : entries.first.time);
+  final start =
+      analyzer.firstDay ?? (entries.isEmpty ? null : entries.first.time);
   final end = analyzer.lastDay ?? (entries.isEmpty ? null : entries.last.time);
   if (start == null || end == null) return 'errNoData'.tr();
-  return 'pdfDocumentTitle'.tr(namedArgs: {
-    'start': dateFormatter.format(start),
-    'end': dateFormatter.format(end),
-  });
+  return 'pdfDocumentTitle'.tr(
+    namedArgs: {
+      'start': dateFormatter.format(start),
+      'end': dateFormatter.format(end),
+    },
+  );
 }
 
 PdfExportStatistics _statistics(
@@ -139,13 +146,15 @@ PdfExportStatistics _statistics(
 ) {
   final period = snapshot.period;
   final activityLine = snapshot.measurementsPerDay == null
-      ? 'dashboardActivityCount'.tr(namedArgs: {
-          'count': snapshot.count.toString(),
-        })
-      : 'dashboardActivityLine'.tr(namedArgs: {
-          'count': snapshot.count.toString(),
-          'perDay': snapshot.measurementsPerDay.toString(),
-        });
+      ? 'dashboardActivityCount'.tr(
+          namedArgs: {'count': snapshot.count.toString()},
+        )
+      : 'dashboardActivityLine'.tr(
+          namedArgs: {
+            'count': snapshot.count.toString(),
+            'perDay': snapshot.measurementsPerDay.toString(),
+          },
+        );
   final latestEntry = snapshot.latest;
   return PdfExportStatistics(
     count: snapshot.count,
@@ -161,12 +170,7 @@ PdfExportStatistics _statistics(
             pul: _pdfNumber(latestEntry.pul?.toDouble()),
           ),
     table: [
-      [
-        '',
-        'sysLong'.tr(),
-        'diaLong'.tr(),
-        'pulLong'.tr(),
-      ],
+      ['', 'sysLong'.tr(), 'diaLong'.tr(), 'pulLong'.tr()],
       [
         'average'.tr(),
         _pdfPressure(period.avgSys, pressureUnit),

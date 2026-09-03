@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:blood_pressure_app/features/export_import/model/pdf_converter.dart';
 import 'package:blood_pressure_app/features/settings/app_settings.dart';
 import 'package:blood_pressure_app/model/storage/storage.dart';
@@ -5,8 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../util.dart';
 import 'csv_converter_test.dart';
+import 'record_formatter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUp(() async {
     await createTestSettings();
   });
@@ -17,6 +22,7 @@ void main() {
       AppSettings.fromController(testSettingsController!),
       ExportColumnsManager(),
       ExportSettings(),
+      locale: 'ar',
     );
     final pdf = await converter.create(createRecords());
     expect(pdf.length, isNonZero);
@@ -70,5 +76,35 @@ void main() {
     final pdf4 = await converter.create(createRecords());
     expect(pdf4.length, isNot(pdf1.length));
     expect(pdf1.length, greaterThan(pdf4.length));
+  });
+
+  test('renders multilingual notes without missing-font diagnostics', () async {
+    final converter = PdfConverter(
+      PdfExportSettings(),
+      AppSettings.fromController(testSettingsController!),
+      ExportColumnsManager(),
+      ExportSettings(),
+    );
+    final diagnostics = <String>[];
+
+    final pdf = await runZoned(
+      () => converter.create([mockEntry(note: 'العربية தமிழ் 中文')]),
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, message) => diagnostics.add(message),
+      ),
+    );
+
+    expect(pdf.take(5), orderedEquals('%PDF-'.codeUnits));
+    expect(
+      diagnostics,
+      isNot(
+        anyElement(
+          anyOf(
+            contains('has no Unicode support'),
+            contains('Unable to find a font'),
+          ),
+        ),
+      ),
+    );
   });
 }
