@@ -188,6 +188,7 @@ class PdfConverter with Loggable {
     final columnTypes = pageDirection == pw.TextDirection.rtl
         ? content.columnTypes.reversed.toList()
         : content.columnTypes;
+    final rowColors = _dayStripeColors(content.rowDays);
     return pw.TableHelper.fromTextArray(
       border: null,
       cellAlignment: cellAlignment,
@@ -199,6 +200,13 @@ class PdfConverter with Loggable {
       cellAlignments: {
         for (final v in List.generate(content.headers.length, (idx) => idx))
           v: cellAlignment,
+      },
+      cellDecoration: (index, cell, rowNum) {
+        final dataIndex = rowNum - 1;
+        if (dataIndex < 0 || dataIndex >= rowColors.length) {
+          return const pw.BoxDecoration();
+        }
+        return pw.BoxDecoration(color: rowColors[dataIndex]);
       },
       headerStyle: headerStyle,
       cellStyle: pw.TextStyle(fontSize: pdfSettings.cellFontSize),
@@ -285,6 +293,24 @@ List<List<String>> _orderedTableData(
 
 List<String> _orderedTableRow(List<String> row, pw.TextDirection direction) =>
     direction == pw.TextDirection.rtl ? row.reversed.toList() : row;
+
+List<PdfColor> _dayStripeColors(List<DateTime> rowDays) {
+  if (rowDays.isEmpty) return const [];
+  final colors = <PdfColor>[];
+  var stripe = false;
+  for (var i = 0; i < rowDays.length; i++) {
+    if (i > 0 && !_sameCalendarDay(rowDays[i - 1], rowDays[i])) {
+      stripe = !stripe;
+    }
+    colors.add(stripe ? PdfColors.blueGrey50 : PdfColors.white);
+  }
+  return colors;
+}
+
+bool _sameCalendarDay(DateTime first, DateTime second) =>
+    first.year == second.year &&
+    first.month == second.month &&
+    first.day == second.day;
 
 final _arabicText = RegExp(r'[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]');
 final _tamilText = RegExp(r'[\u0b80-\u0bff]');

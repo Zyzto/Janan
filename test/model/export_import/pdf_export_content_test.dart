@@ -55,6 +55,20 @@ void main() {
     expect(content.statistics.count, 2);
   });
 
+  test("keeps each exported row's calendar day for table striping", () {
+    final firstMorning = mockEntry(time: DateTime(2024, 1, 1, 8));
+    final firstEvening = mockEntry(time: DateTime(2024, 1, 1, 20));
+    final nextDay = mockEntry(time: DateTime(2024, 1, 2, 8));
+
+    final content = contentOf([firstMorning, firstEvening, nextDay]);
+
+    expect(content.rowDays, [
+      DateTime(2024, 1, 1),
+      DateTime(2024, 1, 1),
+      DateTime(2024, 1, 2),
+    ]);
+  });
+
   test('formats pressures in the preferred unit', () {
     final entry = mockEntry(
       time: DateTime(2024, 2, 1),
