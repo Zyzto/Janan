@@ -61,7 +61,7 @@ jobs:
         run: flutter test
 
   build-apk:
-    name: Signed APK
+    name: Signed APKs
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -106,37 +106,37 @@ jobs:
         run: bash ./scripts/ci/codegen.sh
 
       - name: Build release APK
-        run: flutter build apk --release
-
-      - name: Rename APK
-        run: |
-          eval "$(bash ./scripts/ci/app_version.sh)"
-          mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-release.apk \
-            "dist/janan-${name}.apk"
-          ls -lh dist/
+        run: bash ./scripts/ci/build_release_apk.sh
 
       - name: Verify APK is not debug-signed
         run: |
-          apk=$(ls dist/*.apk)
+          eval "$(bash ./scripts/ci/app_version.sh)"
+          for suffix in armeabi-v7a arm64-v8a x86_64 universal; do
+            apk="dist/janan-${name}-${suffix}.apk"
+            test -s "$apk" || { echo "Missing APK: $apk" >&2; exit 1; }
+          done
           sdk="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           apksigner=$(ls "$sdk"/build-tools/*/apksigner | sort -V | tail -1)
           if [[ ! -x "$apksigner" ]]; then
             echo "apksigner not found under $sdk/build-tools" >&2
             exit 1
           fi
-          certs=$("$apksigner" verify --print-certs "$apk")
-          echo "$certs"
-          if echo "$certs" | grep -q "CN=Android Debug"; then
-            echo "Release APK is still debug-signed" >&2
-            exit 1
-          fi
+          for apk in dist/janan-*.apk; do
+            echo "Checking $apk"
+            certs=$("$apksigner" verify --print-certs "$apk")
+            echo "$certs"
+            if echo "$certs" | grep -q "CN=Android Debug"; then
+              echo "Release APK is still debug-signed: $apk" >&2
+              exit 1
+            fi
+          done
+          unzip -l "dist/janan-${name}-symbols.zip" | grep -q 'mapping.txt'
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: dist/*.apk
+          path: dist/*
           if-no-files-found: error
 
   github-release:
@@ -157,5 +157,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             janan-*.apk
+            janan-*-symbols.zip

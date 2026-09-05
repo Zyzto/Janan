@@ -47,6 +47,11 @@ android {
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // App strings live in assets/translations. This only drops unused
+        // AndroidX / Play locale packs from the APK.
+        resConfigs "ar", "bg", "cs", "de", "en", "es", "et", "fr",
+                "hu", "it", "lt", "nb", "nl", "pl", "pt", "pt-rBR",
+                "ru", "sl", "sv", "ta", "tr", "uk", "zh", "zh-rTW"
     }
     signingConfigs {
        release {
@@ -57,8 +62,17 @@ android {
        }
     }
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+        }
         release {
             signingConfig = signingConfigs.release
+            // Keep R8 and resource shrinking explicit for every release
+            // artifact, including builds invoked directly through Gradle.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
         }
     }
 

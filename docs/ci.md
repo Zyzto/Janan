@@ -8,7 +8,7 @@ This is the [Zyzto fork](../FORK.md). I do not own Play Store, F-Droid, Weblate,
 |----------|---------|--------------|
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Push to `main`, every PR | Analyze, test, translation JSON check, debug APK |
 | [`.github/workflows/pr.yml`](../.github/workflows/pr.yml) | Pull requests | Extra PR lints, goldens, optional labeled test/build |
-| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | Tag `vYY.0M.MICRO` | Tests, signed APK, GitHub Release |
+| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | Tag `vYY.0M.MICRO` | Tests, signed ABI APKs plus universal APK, GitHub Release |
 
 Obtainium watches those GitHub Releases.
 
@@ -52,7 +52,9 @@ git tag v26.08.0
 git push origin v26.08.0
 ```
 
-4. Actions publishes `janan-26.08.0.apk`. Obtainium picks it up.
+4. Actions publishes `janan-26.08.0-armeabi-v7a.apk`, `janan-26.08.0-arm64-v8a.apk`,
+   `janan-26.08.0-x86_64.apk`, and `janan-26.08.0-universal.apk` plus one symbols archive.
+   Obtainium can use the universal APK or the device-specific APK for smaller downloads.
 
 See [docs/release-process.md](release-process.md) for CalVer.
 
@@ -65,4 +67,7 @@ flutter test
 flutter build apk --debug
 ```
 
-Release signing locally: put `key.properties` under `android/` as Flutter documents, then `flutter build apk --release`.
+Release signing locally: put `key.properties` under `android/` as Flutter documents, then
+`bash ./scripts/ci/build_release_apk.sh`. That enables R8/resource shrinking, obfuscates Dart,
+builds all three ABI APKs plus a universal APK, and writes a symbols archive containing Dart
+symbols and the R8 mapping.

@@ -26,7 +26,8 @@ The name lives in `pubspec.yaml`. Flutter keeps the leading zero on the month. T
 How this tree ships APKs: [docs/ci.md](ci.md).
 
 1. `version:` in `pubspec.yaml` matches the tag (`v26.08.0` for `26.08.0+58`).
-2. Tag and push. Actions signs with this fork's keystore secrets and attaches `janan-26.08.0.apk`.
+2. Tag and push. Actions signs with this fork's keystore secrets and attaches one APK for each
+   ABI (`armeabi-v7a`, `arm64-v8a`, `x86_64`), a `-universal.apk`, and one symbols archive.
 3. Obtainium follows that GitHub Release.
 
 Do not upload this APK to Play or F-Droid. Those listings are not ours.
